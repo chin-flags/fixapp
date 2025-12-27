@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>fixapp - Color Theme Visualizer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', sans-serif;
+            background: #f5f5f5;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: #1a1a1a;
+        }
+
+        .subtitle {
+            font-size: 16px;
+            color: #666;
+            margin-bottom: 40px;
+        }
+
+        .theme-selector {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 40px;
+            flex-wrap: wrap;
+        }
+
+        .theme-btn {
+            padding: 12px 24px;
+            border: 2px solid #ddd;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .theme-btn:hover {
+            border-color: #999;
+        }
+
+        .theme-btn.active {
+            background: #1a1a1a;
+            color: white;
+            border-color: #1a1a1a;
+        }
+
+        .theme-grid {
+            display: none;
+            gap: 24px;
+        }
+
+        .theme-grid.active {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+        }
+
+        @media (max-width: 1024px) {
+            .theme-grid.active {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .color-palette {
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .palette-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+
+        .color-swatches {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .swatch {
+            text-align: center;
+        }
+
+        .swatch-color {
+            height: 80px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            border: 1px solid rgba(0,0,0,0.1);
+        }
+
+        .swatch-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 4px;
+        }
+
+        .swatch-value {
+            font-size: 11px;
+            color: #666;
+            font-family: 'Courier New', monospace;
+        }
+
+        .ui-example {
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .example-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+
+        /* Dashboard Example Styles */
+        .dashboard {
+            display: grid;
+            gap: 16px;
+        }
+
+        .stat-card {
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid;
+        }
+
+        .stat-label {
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .stat-subtitle {
+            font-size: 14px;
+        }
+
+        .action-card {
+            padding: 16px;
+            border-radius: 8px;
+            border: 1px solid;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .action-content {
+            flex: 1;
+        }
+
+        .action-title {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .action-subtitle {
+            font-size: 13px;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            border: none;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn:hover {
+            opacity: 0.9;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .form-example {
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 10px 12px;
+            border-radius: 6px;
+            border: 1px solid;
+            font-size: 14px;
+        }
+
+        .notes {
+            margin-top: 24px;
+            padding: 16px;
+            background: #f9f9f9;
+            border-radius: 8px;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .notes-title {
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>fixapp Color Theme Visualizer</h1>
+        <p class="subtitle">Explore three professional color themes with live UI examples. Choose the direction that feels right for fixapp.</p>
+
+        <div class="theme-selector">
+            <button class="theme-btn active" onclick="showTheme('slate')">1. Slate + Amber (Modern SaaS)</button>
+            <button class="theme-btn" onclick="showTheme('navy')">2. Navy + Amber (Professional Energy)</button>
+            <button class="theme-btn" onclick="showTheme('neutral')">3. Neutral + Green (Growth Focus)</button>
+        </div>
+
+        <!-- Theme 1: Slate + Amber -->
+        <div id="theme-slate" class="theme-grid active">
+            <div class="color-palette">
+                <h3 class="palette-title">Color Palette: Slate + Amber</h3>
+                <div class="color-swatches">
+                    <div class="swatch">
+                        <div class="swatch-color" style="background: #0F172A;"></div>
+                        <div class="swatch-label">Primary</div>
+                        <div class="swatch-value">#0F172A</div>
+                    </div>
+                    <div class="swatch">
+                        <div class="swatch-color" style="background: #F59E0B;"></div>
+                        <div class="swatch-label">Accent</div>
+                        <div class="swatch-value">#F59E0B</div>
+                    </div>
+                    <div class="swatch">
+                        <div class="swatch-color" style="background: #10B981;"></div>
+                        <div class="swatch-label">Success</div>
+                        <div class="swatch-value">#10B981</div>
+                    </div>
+                    <div class="swatch">
+                        <div class="swatch-color" style="background: #EF4444;"></div>
+                        <div class="swatch-label">Error</div>
+                        <div class="swatch-value">#EF4444</div>
+                    </div>
+                    <div class="swatch">
+                        <div class="swatch-color" style="background: #F8FAFC;"></div>
+                        <div class="swatch-label">Background</div>
+                        <div class="swatch-value">#F8FAFC</div>
+                    </div>
+                    <div class="swatch">
+                        <div class="swatch-color" style="background: #64748B;"></div>
+                        <div class="swatch-label">Muted</div>
+                        <div class="swatch-value">#64748B</div>
+                    </div>
+                </div>
+                <div class="notes">
+                    <div class="notes-title">Why this works for fixapp:</div>
+                    Slate provides professional sophistication (modern SaaS feel like Linear, Vercel). Amber accent adds warmth and energy without being playful. Strong contrast for plant floor visibility. Clean, technical aesthetic that signals reliability.
+                </div>
+            </div>
+
+            <div class="ui-example">
+                <h3 class="example-title">Dashboard Example</h3>
+                <div class="dashboard">
+                    <div class="stat-card" style="background: #FEF3C7; border-color: #F59E0B; color: #92400E;">
+                        <div class="stat-label">Pending Approvals</div>
+                        <div class="stat-value">3</div>
+                        <div class="stat-subtitle">2 overdue actions</div>
+                    </div>
+
+                    <div class="action-card" style="background: white; border-color: #E2E8F0;">
+                        <div class="action-content">
+                            <div class="action-title" style="color: #0F172A;">Anika completed: Install voltage monitoring</div>
+                            <div class="action-subtitle" style="color: #64748B;">RCA-2847 • Due Dec 28</div>
+                        </div>
+                        <button class="btn" style="background: #F59E0B; color: white;">Approve</button>
+                    </div>
+
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                        <span class="status-badge" style="background: #DCFCE7; color: #166534;">Approved</span>
+                        <span class="status-badge" style="background: #FEF3C7; color: #92400E;">Pending</span>
+                        <span class="status-badge" style="background: #E2E8F0; color: #475569;">Analysis</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="ui-example">
+                <h3 class="example-title">Form Example (Mobile Plant Floor)</h3>
+                <div class="form-example" style="background: white; border-color: #E2E8F0;">
+                    <div class="form-group">
+                        <label class="form-label" style="color: #0F172A;">Equipment</label>
+                        <input class="form-input" style="border-color: #CBD5E1; color: #0F172A;" value="VRM Line 3" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" style="color: #0F172A;">Issue Description</label>
+                        <input class="form-input" style="border-color: #CBD5E1;" placeholder="Describe the issue...">
+                    </div>
+                    <button class="btn" style="background: #F59E0B; color: white; width: 100%;">Submit RCA</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Theme 2: Navy + Amber -->
+        <div id="theme-navy" class="theme-grid">
+            <div class="color-palette">
+                <h3 class="palette-title">Color Palette: Navy + Amber</h3>
+                <div class="color-swatches">
+                    <div class="swatch">
+                        <div class="swatch-color" style="background: #1E3A8A;"></div>
+                        <div class="swatch-label">Primary</div>
+                        <div class="swatch-value">#1E3A8A</div>
+                    </div>
+                    <div class="swatch">
+                        <div class="swatch-color" style="background: #F59E0B;"></div>
+                        <div class="swatch-label">Accent</div>
+                        <div class="swatch-value">#F59E0B</div>
+                    </div>
+                    <div class="swatch">
+                        <div class="swatch-color" style="background: #10B981;"></div>
+                        <div class="swatch-label">Success</div>
+                        <div class="swatch-value">#10B981</div>
+                    </div>
+                    <div class="swatch">
+                        <div class="swatch-color" style="background: #EF4444;"></div>
+                        <div class="swatch-label">Error</div>
+                        <div class="swatch-value">#EF4444</div>
+                    </div>
+                    <div class="swatch">
+                        <div class="swatch-color" style="background: #F1F5F9;"></div>
+                        <div class="swatch-label">Background</div>
+                        <div class="swatch-value">#F1F5F9</div>
+                    </div>
+                    <div class="swatch">
+                        <div class="swatch-color" style="background: #64748B;"></div>
+                        <div class="swatch-label">Muted</div>
+                        <div class="swatch-value">#64748B</div>
+                    </div>
+                </div>
+                <div class="notes">
+                    <div class="notes-title">Why this works for fixapp:</div>
+                    Navy conveys trust, stability, and enterprise professionalism. Amber adds urgency and action orientation. Different enough from Office 365 blue while maintaining corporate credibility. Strong presence that feels authoritative for manufacturing context.
+                </div>
+            </div>
+
+            <div class="ui-example">
+                <h3 class="example-title">Dashboard Example</h3>
+                <div class="dashboard">
+                    <div class="stat-card" style="background: #FEF3C7; border-color: #F59E0B; color: #92400E;">
+                        <div class="stat-label">Pending Approvals</div>
+                        <div class="stat-value">3</div>
+                        <div class="stat-subtitle">2 overdue actions</div>
+                    </div>
+
+                    <div class="action-card" style="background: white; border-color: #BFDBFE;">
+                        <div class="action-content">
+                            <div class="action-title" style="color: #1E3A8A;">Anika completed: Install voltage monitoring</div>
+                            <div class="action-subtitle" style="color: #64748B;">RCA-2847 • Due Dec 28</div>
+                        </div>
+                        <button class="btn" style="background: #F59E0B; color: white;">Approve</button>
+                    </div>
+
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                        <span class="status-badge" style="background: #DCFCE7; color: #166534;">Approved</span>
+                        <span class="status-badge" style="background: #FEF3C7; color: #92400E;">Pending</span>
+                        <span class="status-badge" style="background: #DBEAFE; color: #1E3A8A;">Analysis</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="ui-example">
+                <h3 class="example-title">Form Example (Mobile Plant Floor)</h3>
+                <div class="form-example" style="background: white; border-color: #BFDBFE;">
+                    <div class="form-group">
+                        <label class="form-label" style="color: #1E3A8A;">Equipment</label>
+                        <input class="form-input" style="border-color: #93C5FD; color: #1E3A8A;" value="VRM Line 3" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" style="color: #1E3A8A;">Issue Description</label>
+                        <input class="form-input" style="border-color: #93C5FD;" placeholder="Describe the issue...">
+                    </div>
+                    <button class="btn" style="background: #F59E0B; color: white; width: 100%;">Submit RCA</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Theme 3: Neutral + Green -->
+        <div id="theme-neutral" class="theme-grid">
+            <div class="color-palette">
+                <h3 class="palette-title">Color Palette: Neutral + Green</h3>
+                <div class="color-swatches">
+                    <div class="swatch">
+                        <div class="swatch-color" style="background: #18181B;"></div>
+                        <div class="swatch-label">Primary</div>
+                        <div class="swatch-value">#18181B</div>
+                    </div>
+                    <div class="swatch">
+                        <div class="swatch-color" style="background: #10B981;"></div>
+                        <div class="swatch-label">Accent</div>
+                        <div class="swatch-value">#10B981</div>
+                    </div>
+                    <div class="swatch">
+                        <div class="swatch-color" style="background: #059669;"></div>
+                        <div class="swatch-label">Success</div>
+                        <div class="swatch-value">#059669</div>
+                    </div>
+                    <div class="swatch">
+                        <div class="swatch-color" style="background: #EF4444;"></div>
+                        <div class="swatch-label">Error</div>
+                        <div class="swatch-value">#EF4444</div>
+                    </div>
+                    <div class="swatch">
+                        <div class="swatch-color" style="background: #FAFAFA;"></div>
+                        <div class="swatch-label">Background</div>
+                        <div class="swatch-value">#FAFAFA</div>
+                    </div>
+                    <div class="swatch">
+                        <div class="swatch-color" style="background: #71717A;"></div>
+                        <div class="swatch-label">Muted</div>
+                        <div class="swatch-value">#71717A</div>
+                    </div>
+                </div>
+                <div class="notes">
+                    <div class="notes-title">Why this works for fixapp:</div>
+                    Neutral grays create clean, minimalist foundation (Shadcn/ui default aesthetic). Green accent signals growth, success, and positive action (RCA completion, problem-solving). Fresh, optimistic feel while remaining professional. Excellent contrast for accessibility.
+                </div>
+            </div>
+
+            <div class="ui-example">
+                <h3 class="example-title">Dashboard Example</h3>
+                <div class="dashboard">
+                    <div class="stat-card" style="background: #D1FAE5; border-color: #10B981; color: #065F46;">
+                        <div class="stat-label">Pending Approvals</div>
+                        <div class="stat-value">3</div>
+                        <div class="stat-subtitle">2 overdue actions</div>
+                    </div>
+
+                    <div class="action-card" style="background: white; border-color: #E4E4E7;">
+                        <div class="action-content">
+                            <div class="action-title" style="color: #18181B;">Anika completed: Install voltage monitoring</div>
+                            <div class="action-subtitle" style="color: #71717A;">RCA-2847 • Due Dec 28</div>
+                        </div>
+                        <button class="btn" style="background: #10B981; color: white;">Approve</button>
+                    </div>
+
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                        <span class="status-badge" style="background: #D1FAE5; color: #065F46;">Approved</span>
+                        <span class="status-badge" style="background: #FEF3C7; color: #92400E;">Pending</span>
+                        <span class="status-badge" style="background: #F4F4F5; color: #52525B;">Analysis</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="ui-example">
+                <h3 class="example-title">Form Example (Mobile Plant Floor)</h3>
+                <div class="form-example" style="background: white; border-color: #E4E4E7;">
+                    <div class="form-group">
+                        <label class="form-label" style="color: #18181B;">Equipment</label>
+                        <input class="form-input" style="border-color: #D4D4D8; color: #18181B;" value="VRM Line 3" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" style="color: #18181B;">Issue Description</label>
+                        <input class="form-input" style="border-color: #D4D4D8;" placeholder="Describe the issue...">
+                    </div>
+                    <button class="btn" style="background: #10B981; color: white; width: 100%;">Submit RCA</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showTheme(themeName) {
+            // Hide all themes
+            document.querySelectorAll('.theme-grid').forEach(grid => {
+                grid.classList.remove('active');
+            });
+
+            // Remove active state from all buttons
+            document.querySelectorAll('.theme-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            // Show selected theme
+            document.getElementById('theme-' + themeName).classList.add('active');
+
+            // Set active button
+            event.target.classList.add('active');
+        }
+    </script>
+</body>
+</html>
