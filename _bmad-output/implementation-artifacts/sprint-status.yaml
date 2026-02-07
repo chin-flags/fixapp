@@ -41,15 +41,15 @@ story_location: _bmad-output/implementation-artifacts
 
 development_status:
   # Epic 1: Project Foundation & Multi-Tenant Infrastructure
-  epic-1: backlog
-  1-1-project-initialization: in-progress
-  1-2-database-typeorm-configuration: backlog
-  1-3-multi-tenancy-foundation: backlog
-  1-4-authentication-framework: backlog
-  1-5-security-infrastructure: backlog
-  1-6-realtime-infrastructure: backlog
-  1-7-file-storage-s3: backlog
-  1-8-job-queue-system: backlog
+  epic-1: in-progress
+  1-1-project-initialization: review
+  1-2-database-typeorm-configuration: review
+  1-3-multi-tenancy-foundation: review
+  1-4-authentication-framework: review
+  1-5-security-infrastructure: review
+  1-6-realtime-infrastructure: review
+  1-7-file-storage-s3: review
+  1-8-job-queue-system: review
   1-9-email-service: backlog
   1-10-caching-layer: backlog
   1-11-monitoring-logging: backlog

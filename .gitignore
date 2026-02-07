@@ -1,18 +1,21 @@
 # Dependencies
-node_modules
+node_modules/
 .pnp
 .pnp.js
 
-# Build outputs
-dist
-.next
-out
-build
-.turbo
-
 # Testing
-coverage
+coverage/
 *.log
+
+# Next.js
+.next/
+out/
+build/
+dist/
+
+# Production
+*.tsbuildinfo
+next-env.d.ts
 
 # Environment variables
 .env
@@ -21,25 +24,28 @@ coverage
 .env.test.local
 .env.production.local
 
-# IDE
-.vscode
-.idea
-*.swp
-*.swo
-*~
-.DS_Store
+# Vercel
+.vercel
 
 # Debug
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-.pnpm-debug.log*
 
-# TypeScript
-*.tsbuildinfo
-next-env.d.ts
+# OS
+.DS_Store
+*.pem
+Thumbs.db
 
-# Misc
-.cache
-.temp
-tmp
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Turbo
+.turbo/
+
+# Drizzle
+drizzle/
