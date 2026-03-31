@@ -356,7 +356,7 @@ export const rcasRelations = relations(rcas, ({ one, many }) => ({
   brainstormingContributions: many(brainstormingContributions),
   fishbones: many(fishbones),
   solutions: many(solutions),
-  attachments: many(attachments),
+  attachments: many(attachments, { relationName: 'rca_attachments' }),
 }));
 
 export const solutionsRelations = relations(solutions, ({ one, many }) => ({
@@ -374,7 +374,7 @@ export const solutionsRelations = relations(solutions, ({ one, many }) => ({
     references: [users.id],
     relationName: 'solution_approver',
   }),
-  attachments: many(attachments),
+  attachments: many(attachments, { relationName: 'solution_attachments' }),
   approvalEvents: many(solutionApprovalEvents),
 }));
 
@@ -418,7 +418,7 @@ export const commentsRelations = relations(comments, ({ one, many }) => ({
     relationName: 'comment_thread',
   }),
   replies: many(comments, { relationName: 'comment_thread' }),
-  attachments: many(attachments),
+  attachments: many(attachments, { relationName: 'comment_attachments' }),
 }));
 
 export const brainstormingContributionsRelations = relations(
@@ -432,9 +432,43 @@ export const brainstormingContributionsRelations = relations(
       fields: [brainstormingContributions.userId],
       references: [users.id],
     }),
-    attachments: many(attachments),
+    attachments: many(attachments, { relationName: 'brainstorming_attachments' }),
   }),
 );
+
+export const fishbonesRelations = relations(fishbones, ({ one }) => ({
+  rca: one(rcas, {
+    fields: [fishbones.rcaId],
+    references: [rcas.id],
+  }),
+}));
+
+export const attachmentsRelations = relations(attachments, ({ one }) => ({
+  rca: one(rcas, {
+    fields: [attachments.rcaId],
+    references: [rcas.id],
+    relationName: 'rca_attachments',
+  }),
+  comment: one(comments, {
+    fields: [attachments.commentId],
+    references: [comments.id],
+    relationName: 'comment_attachments',
+  }),
+  brainstormingContribution: one(brainstormingContributions, {
+    fields: [attachments.brainstormingContributionId],
+    references: [brainstormingContributions.id],
+    relationName: 'brainstorming_attachments',
+  }),
+  solution: one(solutions, {
+    fields: [attachments.solutionId],
+    references: [solutions.id],
+    relationName: 'solution_attachments',
+  }),
+  uploadedBy: one(users, {
+    fields: [attachments.uploadedById],
+    references: [users.id],
+  }),
+}));
 
 export const maintenanceTicketsRelations = relations(maintenanceTickets, ({ one, many }) => ({
   tenant: one(tenants, {

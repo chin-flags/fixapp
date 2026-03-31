@@ -6,6 +6,9 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
+import RcaAnalysisWorkspace from "./RcaAnalysisWorkspace";
+import RcaTicketLinkManager from "./RcaTicketLinkManager";
 
 type UserSummary = {
   id: string;
@@ -77,6 +80,13 @@ type Solution = {
   approvalEvents: SolutionApprovalEvent[];
 };
 
+type FishboneCause = {
+  id: string;
+  category: string;
+  cause: string;
+  createdAt: string;
+};
+
 type RcaDetail = {
   id: string;
   rcaNumber: string;
@@ -91,6 +101,7 @@ type RcaDetail = {
   teamMembers: TeamMember[];
   brainstormingContributions: BrainstormingContribution[];
   comments: Comment[];
+  fishbones: FishboneCause[];
   solutions: Solution[];
   availableTeamMembers: UserSummary[];
   maintenanceTicket?: {
@@ -118,7 +129,7 @@ type Props = {
   currentUserRole: string;
   tickets: TicketOption[];
   attachmentBaseUrl: string;
-  ticketLinkManager?: React.ReactNode;
+  canManageTicketLink?: boolean;
 };
 
 function toDateInputValue(value?: string | null) {
@@ -169,14 +180,14 @@ function formatSolutionStatus(status: string) {
 function SolutionStatusBadge({ status }: { status: string }) {
   const statusClasses =
     status === "approved"
-      ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+      ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"
       : status === "submitted"
-        ? "border-amber-200 bg-amber-50 text-amber-700"
+        ? "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-300"
         : status === "completed"
-          ? "border-sky-200 bg-sky-50 text-sky-700"
+          ? "border-sky-500/30 bg-sky-500/10 text-sky-700 dark:text-sky-300"
           : status === "blocked"
-            ? "border-rose-200 bg-rose-50 text-rose-700"
-            : "border-slate-200 bg-slate-50 text-slate-700";
+            ? "border-rose-500/30 bg-rose-500/10 text-rose-700 dark:text-rose-300"
+            : "border-border bg-muted text-muted-foreground";
 
   return (
     <span className={`inline-flex rounded-full border px-2.5 py-1 text-xs font-medium capitalize ${statusClasses}`}>
@@ -204,10 +215,10 @@ function AttachmentList({
           href={`${attachmentBaseUrl}${attachment.fileUrl}`}
           target="_blank"
           rel="noreferrer"
-          className="block rounded-lg border border-slate-200 px-3 py-2 transition-colors hover:border-slate-300 hover:bg-slate-50"
+          className="block rounded-lg border border-border px-3 py-2 transition-colors hover:bg-muted"
         >
-          <p className="font-medium text-slate-900">{attachment.fileName}</p>
-          <p className="mt-1 text-xs text-slate-500">
+          <p className="font-medium text-foreground">{attachment.fileName}</p>
+          <p className="mt-1 text-xs text-muted-foreground">
             {attachment.fileType || "Attachment"} · {renderAttachmentSize(attachment.fileSize)}
           </p>
         </a>
@@ -258,11 +269,11 @@ function SolutionCard({
   }, [solution]);
 
   return (
-    <div className="rounded-xl border border-slate-200 p-4">
+    <div className="rounded-xl border border-border p-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="space-y-2">
           <SolutionStatusBadge status={solution.status} />
-          <p className="text-sm text-slate-600">
+          <p className="text-sm text-muted-foreground">
             {solution.assignedTo
               ? `Assigned to ${solution.assignedTo.name}`
               : "Unassigned"}
@@ -289,13 +300,13 @@ function SolutionCard({
           value={description}
           onChange={(event) => setDescription(event.target.value)}
           disabled={!canManageSolutions || isPending}
-          className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-500 disabled:bg-slate-50"
+          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-ring disabled:bg-muted"
         />
         <select
           value={assignedToId}
           onChange={(event) => setAssignedToId(event.target.value)}
           disabled={!canManageSolutions || isPending}
-          className="rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-500 disabled:bg-slate-50"
+          className="rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-ring disabled:bg-muted"
         >
           <option value="">Unassigned</option>
           {people.map((person) => (
@@ -314,7 +325,7 @@ function SolutionCard({
           value={status}
           onChange={(event) => setStatus(event.target.value)}
           disabled={!canWorkSolution || isPending || solution.status === "submitted"}
-          className="rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-500 disabled:bg-slate-50"
+          className="rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-ring disabled:bg-muted"
         >
           <option value="pending">Pending</option>
           <option value="in_progress">In Progress</option>
@@ -338,7 +349,7 @@ function SolutionCard({
         </Button>
       </div>
 
-      <div className="mt-4 flex flex-wrap gap-3 text-xs text-slate-500">
+      <div className="mt-4 flex flex-wrap gap-3 text-xs text-muted-foreground">
         {solution.completedAt ? <span>Completed {formatDateTime(solution.completedAt)}</span> : null}
         {solution.submittedForApprovalAt ? (
           <span>Submitted {formatDateTime(solution.submittedForApprovalAt)}</span>
@@ -352,11 +363,11 @@ function SolutionCard({
       </div>
 
       {solution.approvalEvents.length ? (
-        <div className="mt-4 rounded-lg bg-slate-50 p-3">
-          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Approval Trail</p>
+        <div className="mt-4 rounded-lg bg-muted p-3">
+          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Approval Trail</p>
           <div className="mt-2 space-y-2">
             {solution.approvalEvents.map((event) => (
-              <div key={event.id} className="text-sm text-slate-700">
+              <div key={event.id} className="text-sm text-foreground">
                 <span className="font-medium capitalize">{event.actor.name}</span>{" "}
                 {formatSolutionStatus(event.action)} on {formatDateTime(event.createdAt)}
                 {event.notes ? ` · ${event.notes}` : ""}
@@ -369,6 +380,74 @@ function SolutionCard({
   );
 }
 
+function FishboneDiagram({ fishbones }: { fishbones: FishboneCause[] }) {
+  const groups = useMemo(() => {
+    const map = new Map<string, FishboneCause[]>();
+
+    for (const entry of fishbones) {
+      const key = entry.category?.trim() || "Other";
+      const current = map.get(key) ?? [];
+      current.push(entry);
+      map.set(key, current);
+    }
+
+    return [...map.entries()].sort((left, right) => left[0].localeCompare(right[0]));
+  }, [fishbones]);
+
+  if (!groups.length) {
+    return (
+      <div className="rounded-xl border border-dashed border-border bg-muted/50 px-4 py-6 text-sm text-muted-foreground">
+        No fishbone causes have been captured yet.
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-5">
+      <div className="overflow-hidden rounded-2xl border border-border bg-card">
+        <div className="flex min-h-24 items-center justify-between gap-4 border-b border-border bg-muted/50 px-4 py-3">
+          <div className="max-w-xs rounded-xl border border-primary/20 bg-primary/10 px-4 py-3 text-sm font-medium text-foreground">
+            Effect: {groups.flatMap(([, causes]) => causes).length} contributing causes tied to this RCA
+          </div>
+          <div className="hidden h-px flex-1 bg-border md:block" />
+          <div className="hidden text-xs font-semibold uppercase tracking-[0.24em] text-muted-foreground md:block">
+            Fishbone
+          </div>
+        </div>
+        <div className="grid gap-4 p-4 md:grid-cols-2">
+          {groups.map(([category, causes], index) => (
+            <div
+              key={category}
+              className={cn("rounded-xl border px-4 py-4", 
+                index % 2 === 0
+                  ? "border-amber-500/30 bg-amber-500/10"
+                  : "border-emerald-500/30 bg-emerald-500/10"
+              )}
+            >
+              <div className="flex items-center gap-3">
+                <div className="h-px flex-1 bg-border" />
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+                  {category}
+                </p>
+              </div>
+              <div className="mt-4 space-y-2">
+                {causes.map((cause) => (
+                  <div key={cause.id} className="rounded-lg border border-border/60 bg-card px-3 py-2 text-sm text-foreground shadow-sm">
+                    {cause.cause}
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+      <p className="text-xs text-muted-foreground">
+        Categories are grouped from recorded fishbone causes for this investigation.
+      </p>
+    </div>
+  );
+}
+
 export default function RcaCollaborationClient({
   initialRca,
   accessToken,
@@ -376,7 +455,7 @@ export default function RcaCollaborationClient({
   currentUserRole,
   tickets,
   attachmentBaseUrl,
-  ticketLinkManager,
+  canManageTicketLink,
 }: Props) {
   const [rca, setRca] = useState(initialRca);
   const [error, setError] = useState<string | null>(null);
@@ -469,11 +548,10 @@ export default function RcaCollaborationClient({
     runRequest(
       async () =>
         parseResponse(
-          await fetch(buildBackendProxyUrl(`/rcas/${rca.id}/team-members`), {
+          await fetch(`/api/rca/${rca.id}/team-members`, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
-              Authorization: `Bearer ${accessToken}`,
             },
             body: JSON.stringify({ userId: selectedMemberId }),
           })
@@ -487,11 +565,8 @@ export default function RcaCollaborationClient({
     runRequest(
       async () =>
         parseResponse(
-          await fetch(buildBackendProxyUrl(`/rcas/${rca.id}/team-members/${memberId}/remove`), {
+          await fetch(`/api/rca/${rca.id}/team-members/${memberId}/remove`, {
             method: "POST",
-            headers: {
-              Authorization: `Bearer ${accessToken}`,
-            },
           })
         ),
       "Team member removed."
@@ -652,8 +727,8 @@ export default function RcaCollaborationClient({
         <div
           className={`rounded-xl border px-4 py-3 text-sm ${
             error
-              ? "border-red-200 bg-red-50 text-red-700"
-              : "border-emerald-200 bg-emerald-50 text-emerald-700"
+              ? "border-destructive/30 bg-destructive/10 text-destructive"
+              : "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"
           }`}
         >
           {error || success}
@@ -669,53 +744,59 @@ export default function RcaCollaborationClient({
                   {rca.rcaNumber}
                 </Badge>
                 <CardTitle className="text-2xl">{rca.title}</CardTitle>
-                <p className="text-sm text-slate-600">Status: {rca.status}</p>
+                <p className="text-sm text-muted-foreground">Status: {rca.status}</p>
               </div>
               {rca.maintenanceTicket ? (
-                <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm">
-                  <p className="font-medium text-slate-900">{rca.maintenanceTicket.ticketNumber}</p>
-                  <p className="text-slate-600">
+                <div className="rounded-lg border border-border bg-muted/50 px-3 py-2 text-sm">
+                  <p className="font-medium text-foreground">{rca.maintenanceTicket.ticketNumber}</p>
+                  <p className="text-muted-foreground">
                     {rca.maintenanceTicket.equipmentName} · {rca.maintenanceTicket.location}
                   </p>
                 </div>
               ) : null}
             </div>
           </CardHeader>
-          <CardContent className="space-y-6 text-sm text-slate-700">
+          <CardContent className="space-y-6 text-sm text-muted-foreground">
             <div>
-              <p className="font-medium text-slate-900">Description</p>
+              <p className="font-medium text-foreground">Description</p>
               <p className="mt-2 whitespace-pre-wrap">{rca.description}</p>
             </div>
 
             <div className="grid gap-4 md:grid-cols-3">
               <div>
-                <p className="font-medium text-slate-900">Equipment</p>
+                <p className="font-medium text-foreground">Equipment</p>
                 <p className="mt-1">{rca.equipmentName || "Not specified"}</p>
               </div>
               <div>
-                <p className="font-medium text-slate-900">Location</p>
+                <p className="font-medium text-foreground">Location</p>
                 <p className="mt-1">{rca.location || "Not specified"}</p>
               </div>
               <div>
-                <p className="font-medium text-slate-900">Owner</p>
+                <p className="font-medium text-foreground">Owner</p>
                 <p className="mt-1">
                   {rca.owner ? `${rca.owner.name} (${rca.owner.email})` : "Unassigned"}
                 </p>
               </div>
             </div>
 
-            {ticketLinkManager}
+            {canManageTicketLink ? (
+              <RcaTicketLinkManager
+                rcaId={rca.id}
+                currentTicketId={rca.maintenanceTicket?.id ?? null}
+                tickets={tickets}
+              />
+            ) : null}
 
             <div>
               <div className="flex items-center justify-between gap-3">
-                <p className="font-medium text-slate-900">RCA Attachments</p>
+                <p className="font-medium text-foreground">RCA Attachments</p>
                 <Badge variant="secondary">{rca.attachments.length}</Badge>
               </div>
               <div className="mt-3">
                 {rca.attachments.length ? (
                   <AttachmentList attachments={rca.attachments} attachmentBaseUrl={attachmentBaseUrl} />
                 ) : (
-                  <p className="text-slate-500">No RCA-level attachments yet.</p>
+                  <p className="text-muted-foreground">No RCA-level attachments yet.</p>
                 )}
               </div>
             </div>
@@ -733,12 +814,12 @@ export default function RcaCollaborationClient({
             {canManageTeam ? (
               <form className="space-y-3" onSubmit={onAddTeamMember}>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700" htmlFor="team-member">
+                  <label className="block text-sm font-medium text-foreground" htmlFor="team-member">
                     Add specialist or mentor
                   </label>
                   <select
                     id="team-member"
-                    className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-500"
+                    className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-ring"
                     value={selectedMemberId}
                     onChange={(event) => setSelectedMemberId(event.target.value)}
                   >
@@ -761,12 +842,12 @@ export default function RcaCollaborationClient({
                 rca.teamMembers.map((member) => (
                   <div
                     key={member.id}
-                    className="rounded-xl border border-slate-200 px-4 py-3"
+                    className="rounded-xl border border-border px-4 py-3"
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div>
-                        <p className="font-medium text-slate-900">{member.user.name}</p>
-                        <p className="text-sm text-slate-600">{member.user.email}</p>
+                        <p className="font-medium text-foreground">{member.user.name}</p>
+                        <p className="text-sm text-muted-foreground">{member.user.email}</p>
                         <div className="mt-2 flex flex-wrap gap-2">
                           <Badge variant="outline">{member.user.tenantRoleName || member.user.role}</Badge>
                           <Badge variant="secondary">Added {formatDateTime(member.addedAt)}</Badge>
@@ -787,7 +868,7 @@ export default function RcaCollaborationClient({
                   </div>
                 ))
               ) : (
-                <p className="text-sm text-slate-500">
+                <p className="text-sm text-muted-foreground">
                   No team members have been added yet.
                 </p>
               )}
@@ -796,186 +877,21 @@ export default function RcaCollaborationClient({
         </Card>
       </div>
 
-      <div className="grid gap-6 xl:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between gap-3">
-              <CardTitle>Corrective Actions</CardTitle>
-              <Badge variant="secondary">{rca.solutions.length}</Badge>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {canManageSolutions ? (
-              <form className="space-y-3 rounded-xl border border-slate-200 p-4" onSubmit={onAddSolution}>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700" htmlFor="solution-description">
-                    New solution
-                  </label>
-                  <textarea
-                    id="solution-description"
-                    rows={3}
-                    value={solutionDescription}
-                    onChange={(event) => setSolutionDescription(event.target.value)}
-                    className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-500"
-                    placeholder="Describe the corrective action and expected result."
-                  />
-                </div>
-                <div className="grid gap-3 md:grid-cols-3">
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700" htmlFor="solution-assignee">
-                      Assign to
-                    </label>
-                    <select
-                      id="solution-assignee"
-                      className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-500"
-                      value={solutionAssignedToId}
-                      onChange={(event) => setSolutionAssignedToId(event.target.value)}
-                    >
-                      <option value="">Unassigned</option>
-                      {solutionPeople.map((person) => (
-                        <option key={person.id} value={person.id}>
-                          {person.name} ({person.email})
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700" htmlFor="solution-due-date">
-                      Due date
-                    </label>
-                    <Input
-                      id="solution-due-date"
-                      type="date"
-                      value={solutionDueDate}
-                      onChange={(event) => setSolutionDueDate(event.target.value)}
-                      className="mt-1"
-                    />
-                  </div>
-                  <div className="flex items-end">
-                    <Button type="submit" disabled={isPending} className="w-full">
-                      {isPending ? "Saving..." : "Add Solution"}
-                    </Button>
-                  </div>
-                </div>
-              </form>
-            ) : null}
+      <RcaAnalysisWorkspace
+        title={rca.title}
+        description={rca.description}
+        fishbones={rca.fishbones}
+        brainstormingContributions={rca.brainstormingContributions}
+        solutions={rca.solutions.map((solution) => ({
+          id: solution.id,
+          description: solution.description,
+          status: solution.status,
+          dueDate: solution.dueDate,
+        }))}
+        openDiagramHref={`/rca/${rca.id}/diagram`}
+      />
 
-            <div className="space-y-4">
-              {rca.solutions.length ? (
-                rca.solutions.map((solution) => (
-                  <SolutionCard
-                    key={solution.id}
-                    solution={solution}
-                    people={solutionPeople}
-                    canManageSolutions={canManageSolutions}
-                    canWorkSolution={canManageSolutions || solution.assignedToId === currentUserId}
-                    canApproveSolution={
-                      canManageSolutions && solution.assignedToId !== currentUserId
-                    }
-                    isPending={isPending}
-                    onUpdate={onUpdateSolution}
-                    onSubmit={onSubmitSolution}
-                    onApprove={onApproveSolution}
-                  />
-                ))
-              ) : (
-                <p className="text-sm text-slate-500">
-                  No corrective actions defined yet.
-                </p>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between gap-3">
-              <CardTitle>Brainstorming</CardTitle>
-              <Badge variant="secondary">{rca.brainstormingContributions.length}</Badge>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <form className="space-y-3" onSubmit={onAddBrainstorming}>
-              <div>
-                <label className="block text-sm font-medium text-slate-700" htmlFor="brainstorm-title">
-                  Title
-                </label>
-                <Input
-                  id="brainstorm-title"
-                  value={brainstormTitle}
-                  onChange={(event) => setBrainstormTitle(event.target.value)}
-                  placeholder="Observation, test, failure pattern..."
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-700" htmlFor="brainstorm-content">
-                  Findings
-                </label>
-                <textarea
-                  id="brainstorm-content"
-                  rows={5}
-                  value={brainstormContent}
-                  onChange={(event) => setBrainstormContent(event.target.value)}
-                  className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-500"
-                  placeholder="Capture symptoms, hypotheses, evidence, and what to inspect next."
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-700" htmlFor="brainstorm-files">
-                  Attach supporting files
-                </label>
-                <input
-                  id="brainstorm-files"
-                  type="file"
-                  multiple
-                  className="mt-1 block w-full text-sm text-slate-700 file:mr-4 file:rounded-md file:border-0 file:bg-slate-100 file:px-3 file:py-2 file:text-sm file:font-medium file:text-slate-700"
-                  onChange={(event) => setBrainstormFiles(Array.from(event.target.files ?? []))}
-                />
-              </div>
-              <Button type="submit" disabled={isPending}>
-                {isPending ? "Saving..." : "Add Brainstorming Note"}
-              </Button>
-            </form>
-
-            <div className="space-y-4">
-              {rca.brainstormingContributions.length ? (
-                rca.brainstormingContributions.map((contribution) => (
-                  <div key={contribution.id} className="rounded-xl border border-slate-200 p-4">
-                    <div className="flex flex-wrap items-center justify-between gap-3">
-                      <div>
-                        <p className="font-medium text-slate-900">
-                          {contribution.title || "Untitled contribution"}
-                        </p>
-                        <p className="text-xs text-slate-500">
-                          {contribution.author.name} · {formatDateTime(contribution.createdAt)}
-                        </p>
-                      </div>
-                      <Badge variant="outline">
-                        {contribution.author.tenantRoleName || contribution.author.role}
-                      </Badge>
-                    </div>
-                    <p className="mt-3 whitespace-pre-wrap text-sm text-slate-700">
-                      {contribution.content}
-                    </p>
-                    {contribution.attachments.length ? (
-                      <div className="mt-3">
-                        <AttachmentList
-                          attachments={contribution.attachments}
-                          attachmentBaseUrl={attachmentBaseUrl}
-                        />
-                      </div>
-                    ) : null}
-                  </div>
-                ))
-              ) : (
-                <p className="text-sm text-slate-500">
-                  No brainstorming contributions yet.
-                </p>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
+      <div className="grid gap-6">
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between gap-3">
@@ -986,7 +902,7 @@ export default function RcaCollaborationClient({
           <CardContent className="space-y-6">
             <form className="space-y-3" onSubmit={onAddComment}>
               {replyToId ? (
-                <div className="flex items-center justify-between rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
+                <div className="flex items-center justify-between rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-sm text-foreground">
                   <span>Replying in thread</span>
                   <button
                     type="button"
@@ -998,7 +914,7 @@ export default function RcaCollaborationClient({
                 </div>
               ) : null}
               <div>
-                <label className="block text-sm font-medium text-slate-700" htmlFor="comment-content">
+                <label className="block text-sm font-medium text-foreground" htmlFor="comment-content">
                   Comment
                 </label>
                 <textarea
@@ -1006,7 +922,7 @@ export default function RcaCollaborationClient({
                   rows={4}
                   value={commentContent}
                   onChange={(event) => setCommentContent(event.target.value)}
-                  className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-500"
+                  className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-ring"
                   placeholder="Use @name@example.com for lightweight mentions."
                 />
               </div>
@@ -1018,11 +934,11 @@ export default function RcaCollaborationClient({
             <div className="space-y-4">
               {rootComments.length ? (
                 rootComments.map((comment) => (
-                  <div key={comment.id} className="rounded-xl border border-slate-200 p-4">
+                  <div key={comment.id} className="rounded-xl border border-border p-4">
                     <div className="flex items-start justify-between gap-3">
                       <div>
-                        <p className="font-medium text-slate-900">{comment.author.name}</p>
-                        <p className="text-xs text-slate-500">{formatDateTime(comment.createdAt)}</p>
+                        <p className="font-medium text-foreground">{comment.author.name}</p>
+                        <p className="text-xs text-muted-foreground">{formatDateTime(comment.createdAt)}</p>
                       </div>
                       <Button
                         type="button"
@@ -1033,7 +949,7 @@ export default function RcaCollaborationClient({
                         Reply
                       </Button>
                     </div>
-                    <p className="mt-3 whitespace-pre-wrap text-sm text-slate-700">{comment.content}</p>
+                    <p className="mt-3 whitespace-pre-wrap text-sm text-foreground">{comment.content}</p>
                     {comment.mentions?.length ? (
                       <div className="mt-3 flex flex-wrap gap-2">
                         {comment.mentions.map((mention) => (
@@ -1044,13 +960,13 @@ export default function RcaCollaborationClient({
                       </div>
                     ) : null}
                     {replyLookup.get(comment.id)?.length ? (
-                      <div className="mt-4 space-y-3 border-l border-slate-200 pl-4">
+                      <div className="mt-4 space-y-3 border-l border-border pl-4">
                         {replyLookup.get(comment.id)?.map((reply) => (
-                          <div key={reply.id} className="rounded-lg bg-slate-50 px-3 py-3">
+                          <div key={reply.id} className="rounded-lg bg-muted/50 px-3 py-3">
                             <div className="flex items-start justify-between gap-3">
                               <div>
-                                <p className="font-medium text-slate-900">{reply.author.name}</p>
-                                <p className="text-xs text-slate-500">
+                                <p className="font-medium text-foreground">{reply.author.name}</p>
+                                <p className="text-xs text-muted-foreground">
                                   {formatDateTime(reply.createdAt)}
                                 </p>
                               </div>
@@ -1058,7 +974,7 @@ export default function RcaCollaborationClient({
                                 {reply.author.tenantRoleName || reply.author.role}
                               </Badge>
                             </div>
-                            <p className="mt-2 whitespace-pre-wrap text-sm text-slate-700">
+                            <p className="mt-2 whitespace-pre-wrap text-sm text-foreground">
                               {reply.content}
                             </p>
                           </div>
@@ -1068,7 +984,7 @@ export default function RcaCollaborationClient({
                   </div>
                 ))
               ) : (
-                <p className="text-sm text-slate-500">No comments yet.</p>
+                <p className="text-sm text-muted-foreground">No comments yet.</p>
               )}
             </div>
           </CardContent>

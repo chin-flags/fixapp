@@ -1,13 +1,13 @@
 import { notFound, redirect } from "next/navigation";
 import { auth } from "@/lib/auth/config";
 import Link from "next/link";
-import RcaTicketLinkManager from "./RcaTicketLinkManager";
 import RcaCollaborationClient from "./RcaCollaborationClient";
 import { AppShell } from "@/components/app-shell";
+import { buildExternalBackendUrl } from "@/lib/backend-endpoints";
 import {
-  buildBackendProxyUrl,
-  buildExternalBackendUrl,
-} from "@/lib/backend-endpoints";
+  getRcaDetailForTenantUser,
+  listTicketsForTenant,
+} from "@/lib/server/operations-records";
 
 type PageProps = {
   params: Promise<{ id: string }>;
@@ -22,27 +22,26 @@ export default async function RcaDetailsPage({ params }: PageProps) {
 
   const { id } = await params;
 
-  const [rcaRes, metadataRes] = await Promise.all([
-    fetch(buildBackendProxyUrl(`/rcas/${id}`), {
-      headers: {
-        Authorization: `Bearer ${session.user.accessToken}`,
+  if (!session.user.tenantId) {
+    redirect("/login?callbackUrl=/rca");
+  }
+
+  const [rca, tickets] = await Promise.all([
+    getRcaDetailForTenantUser(
+      {
+        id: session.user.id,
+        tenantId: session.user.tenantId,
+        role: session.user.role,
       },
-      cache: "no-store",
-    }),
-    fetch(buildBackendProxyUrl("/rcas/metadata"), {
-      headers: {
-        Authorization: `Bearer ${session.user.accessToken}`,
-      },
-      cache: "no-store",
-    }),
+      id,
+    ),
+    listTicketsForTenant(session.user.tenantId),
   ]);
 
-  if (!rcaRes.ok) {
+  if (!rca) {
     notFound();
   }
 
-  const rca = await rcaRes.json();
-  const metadata = metadataRes.ok ? await metadataRes.json() : { tickets: [] };
   const attachmentBaseUrl = buildExternalBackendUrl("");
   const userName = session.user.name || session.user.email?.split("@")[0] || "User";
 
@@ -58,7 +57,9 @@ export default async function RcaDetailsPage({ params }: PageProps) {
         rca.maintenanceTicket ? (
           <Link
             href={`/tickets/${rca.maintenanceTicket.id}`}
-            className="inline-flex items-center rounded-md border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50"
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center rounded-md border border-border bg-background px-3 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted"
           >
             Open Ticket
           </Link>
@@ -70,17 +71,9 @@ export default async function RcaDetailsPage({ params }: PageProps) {
         accessToken={session.user.accessToken}
         currentUserId={session.user.id}
         currentUserRole={session.user.role}
-        tickets={metadata.tickets ?? []}
+        tickets={tickets}
         attachmentBaseUrl={attachmentBaseUrl}
-        ticketLinkManager={
-          session.user.role === "admin" ? (
-            <RcaTicketLinkManager
-              rcaId={rca.id}
-              currentTicketId={rca.maintenanceTicket?.id ?? null}
-              tickets={metadata.tickets ?? []}
-            />
-          ) : null
-        }
+        canManageTicketLink={session.user.role === "admin"}
       />
     </AppShell>
   );
