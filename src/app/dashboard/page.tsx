@@ -38,7 +38,7 @@ export default async function DashboardPage() {
           <div className="rounded-xl border border-amber-200 bg-amber-50 p-8 shadow-sm">
             <h2 className="text-lg font-semibold text-amber-900">Unable to load dashboard data</h2>
             <p className="mt-2 text-sm text-amber-700">
-              We couldn&apos;t load the Phase 4 RCA dashboard right now. Please try again or sign in again.
+              We couldn&apos;t load the RCA dashboard right now. Please try again or sign in again.
             </p>
           </div>
         </div>

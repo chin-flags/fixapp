@@ -1,21 +1,16 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth/config";
-import { fetchRCAs, type RCARow, type RcaListFilters } from "@/lib/backend-api";
+import { type RCARow, type RcaListFilters } from "@/lib/backend-api";
 import { AppShell } from "@/components/app-shell";
 import { SectionCards } from "@/components/section-cards";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { buildBackendProxyUrl } from "@/lib/backend-endpoints";
+import { listRcaOwnerOptions, listRcasForTenantUser } from "@/lib/server/operations-records";
+import RcaFilters from "./RcaFilters";
 
 type SearchParamValue = string | string[] | undefined;
 type PageProps = {
   searchParams?: Promise<Record<string, SearchParamValue>>;
-};
-
-type OwnerOption = {
-  id: string;
-  name: string;
-  email: string;
 };
 
 function getSingleValue(value: SearchParamValue) {
@@ -72,25 +67,17 @@ export default async function RcaIndexPage({ searchParams }: PageProps) {
 
   const resolvedSearchParams = searchParams ? await searchParams : {};
   const filters = buildFilters(resolvedSearchParams);
-  const [rcaRows, metadataRes] = await Promise.all([
-    fetchRCAs(session.user.accessToken, session.user.tenantId, filters),
-    fetch(buildBackendProxyUrl("/rcas/metadata"), {
-      headers: {
-        Authorization: `Bearer ${session.user.accessToken}`,
+  const [rcaRows, owners] = await Promise.all([
+    listRcasForTenantUser(
+      {
+        id: session.user.id,
+        tenantId: session.user.tenantId,
+        role: session.user.role,
       },
-      cache: "no-store",
-    }),
+      filters,
+    ),
+    listRcaOwnerOptions(session.user.tenantId),
   ]);
-
-  if (metadataRes.status === 401 || metadataRes.status === 403) {
-    redirect("/login?callbackUrl=/rca");
-  }
-
-  let owners: OwnerOption[] = [];
-  if (metadataRes.ok) {
-    const metadata = await metadataRes.json();
-    owners = metadata.owners ?? [];
-  }
 
   const total = rcaRows.length;
   const open = rcaRows.filter((rca) => (rca.status || "").toLowerCase() === "open").length;
@@ -141,134 +128,7 @@ export default async function RcaIndexPage({ searchParams }: PageProps) {
         ]}
       />
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Search and Filters</CardTitle>
-          <CardDescription>
-            Narrow RCA records by text, status, equipment, location, created date, and assigned owner.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form className="grid gap-4 md:grid-cols-2 xl:grid-cols-4" method="GET">
-            <div className="space-y-2 xl:col-span-2">
-              <label className="text-sm font-medium text-foreground" htmlFor="q">
-                Search
-              </label>
-              <input
-                id="q"
-                name="q"
-                defaultValue={filters.q ?? ""}
-                placeholder="RCA #, title, description, equipment, or location"
-                className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-foreground" htmlFor="status">
-                Status
-              </label>
-              <select
-                id="status"
-                name="status"
-                defaultValue={filters.status ?? ""}
-                className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-              >
-                <option value="">All statuses</option>
-                <option value="open">Open</option>
-                <option value="in_progress">In Progress</option>
-                <option value="closed">Closed</option>
-              </select>
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-foreground" htmlFor="assignee">
-                Assignee
-              </label>
-              <select
-                id="assignee"
-                name="assignee"
-                defaultValue={filters.assignee ?? ""}
-                className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-              >
-                <option value="">All assignees</option>
-                <option value="unassigned">Unassigned</option>
-                {owners.map((owner) => (
-                  <option key={owner.id} value={owner.id}>
-                    {owner.name} ({owner.email})
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-foreground" htmlFor="equipment">
-                Equipment
-              </label>
-              <input
-                id="equipment"
-                name="equipment"
-                defaultValue={filters.equipment ?? ""}
-                placeholder="Pump, conveyor, compressor..."
-                className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-foreground" htmlFor="location">
-                Location
-              </label>
-              <input
-                id="location"
-                name="location"
-                defaultValue={filters.location ?? ""}
-                placeholder="Plant, line, or area"
-                className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-foreground" htmlFor="createdFrom">
-                Created from
-              </label>
-              <input
-                id="createdFrom"
-                name="createdFrom"
-                type="date"
-                defaultValue={filters.createdFrom ?? ""}
-                className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-foreground" htmlFor="createdTo">
-                Created to
-              </label>
-              <input
-                id="createdTo"
-                name="createdTo"
-                type="date"
-                defaultValue={filters.createdTo ?? ""}
-                className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-              />
-            </div>
-
-            <div className="flex items-end gap-2 xl:col-span-4">
-              <button
-                type="submit"
-                className="inline-flex h-9 items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground hover:bg-primary/90"
-              >
-                Apply filters
-              </button>
-              <Link
-                href="/rca"
-                className="inline-flex h-9 items-center justify-center rounded-md border border-input px-4 text-sm font-medium text-foreground hover:bg-accent"
-              >
-                Reset
-              </Link>
-            </div>
-          </form>
-        </CardContent>
-      </Card>
+      <RcaFilters filters={filters} owners={owners} activeFilterCount={activeFilterCount} />
 
       <Card>
         <CardHeader>
@@ -282,7 +142,7 @@ export default async function RcaIndexPage({ searchParams }: PageProps) {
         <CardContent className="px-0">
           {rcaRows.length === 0 ? (
             <div className="px-6 pb-6 text-sm text-muted-foreground">
-              No RCAs matched the selected filters.
+              {activeFilterCount > 0 ? "No RCAs matched the selected filters." : "No RCA records are available yet."}
             </div>
           ) : (
             <div className="overflow-x-auto px-6 pb-6">
