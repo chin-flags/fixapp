@@ -2,17 +2,34 @@ import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 import * as schema from './schema';
 
-// Create PostgreSQL connection
-const connectionString = process.env.POSTGRES_URL_NON_POOLING || process.env.POSTGRES_URL;
+type Database = ReturnType<typeof drizzle<typeof schema>>;
 
-if (!connectionString) {
-  throw new Error('POSTGRES_URL or POSTGRES_URL_NON_POOLING environment variable is not set');
+let dbInstance: Database | null = null;
+
+function getConnectionString() {
+  const connectionString = process.env.POSTGRES_URL_NON_POOLING || process.env.POSTGRES_URL;
+
+  if (!connectionString) {
+    throw new Error('POSTGRES_URL or POSTGRES_URL_NON_POOLING environment variable is not set');
+  }
+
+  return connectionString;
 }
 
-const sql = postgres(connectionString);
+function getDbInstance() {
+  if (!dbInstance) {
+    const sql = postgres(getConnectionString());
+    dbInstance = drizzle(sql, { schema });
+  }
 
-// Create Drizzle instance
-export const db = drizzle(sql, { schema });
+  return dbInstance;
+}
+
+export const db = new Proxy({} as Database, {
+  get(_target, property, receiver) {
+    return Reflect.get(getDbInstance(), property, receiver);
+  },
+});
 
 // Helper to get current tenant from context
 // This will be set via middleware based on subdomain/domain

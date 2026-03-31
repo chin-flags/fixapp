@@ -46,14 +46,37 @@ type CommentRow = {
   rcaId: string;
 };
 
-const connectionString =
-  process.env.POSTGRES_URL_NON_POOLING || process.env.POSTGRES_URL;
+type SqlClient = ReturnType<typeof postgres>;
 
-if (!connectionString) {
-  throw new Error("POSTGRES_URL or POSTGRES_URL_NON_POOLING environment variable is not set");
+let sqlClient: SqlClient | null = null;
+
+function getConnectionString() {
+  const connectionString =
+    process.env.POSTGRES_URL_NON_POOLING || process.env.POSTGRES_URL;
+
+  if (!connectionString) {
+    throw new Error("POSTGRES_URL or POSTGRES_URL_NON_POOLING environment variable is not set");
+  }
+
+  return connectionString;
 }
 
-const sql = postgres(connectionString);
+function getSql() {
+  if (!sqlClient) {
+    sqlClient = postgres(getConnectionString());
+  }
+
+  return sqlClient;
+}
+
+const sql = new Proxy(((() => undefined) as unknown) as SqlClient, {
+  apply(_target, thisArg, argArray) {
+    return Reflect.apply(getSql(), thisArg, argArray);
+  },
+  get(_target, property, receiver) {
+    return Reflect.get(getSql(), property, receiver);
+  },
+});
 
 function toDate(value: Date | string | null | undefined) {
   if (!value) {
