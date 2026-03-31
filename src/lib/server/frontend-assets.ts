@@ -1,13 +1,13 @@
 import { and, asc, eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { assets } from "@/lib/db/schema";
-import type { AssetHierarchyCountry } from "@/lib/db/queries/assets";
+import type { AssetHierarchyNode, AssetNodeType } from "@/lib/db/queries/assets";
 import { handleRouteError, requireTenantSession } from "@/lib/server/frontend-account";
 
 type AssetRow = {
   id: string;
   parentId: string | null;
-  type: "country" | "plant" | "area" | "equipment";
+  type: AssetNodeType;
   name: string;
   location: string | null;
   companyId: string | null;
@@ -18,45 +18,27 @@ function getDb() {
   return db as any;
 }
 
-function buildAssetHierarchy(rows: AssetRow[]): AssetHierarchyCountry[] {
-  const countries = rows
-    .filter((row) => row.type === "country")
-    .map((country) => ({
-      id: country.id,
-      name: country.name,
-      location: country.location,
-      companyId: country.companyId,
-      photoUrl: country.photoUrl,
-      plants: rows
-        .filter((row) => row.type === "plant" && row.parentId === country.id)
-        .map((plant) => ({
-          id: plant.id,
-          name: plant.name,
-          location: plant.location,
-          companyId: plant.companyId,
-          photoUrl: plant.photoUrl,
-          areas: rows
-            .filter((row) => row.type === "area" && row.parentId === plant.id)
-            .map((area) => ({
-              id: area.id,
-              name: area.name,
-              location: area.location,
-              companyId: area.companyId,
-              photoUrl: area.photoUrl,
-              equipment: rows
-                .filter((row) => row.type === "equipment" && row.parentId === area.id)
-                .map((equipment) => ({
-                  id: equipment.id,
-                  name: equipment.name,
-                  location: equipment.location,
-                  companyId: equipment.companyId,
-                  photoUrl: equipment.photoUrl,
-                })),
-            })),
-        })),
-    }));
+function buildAssetHierarchy(rows: AssetRow[]): AssetHierarchyNode[] {
+  const byParent = new Map<string | null, AssetRow[]>();
 
-  return countries;
+  for (const row of rows) {
+    const current = byParent.get(row.parentId) ?? [];
+    current.push(row);
+    byParent.set(row.parentId, current);
+  }
+
+  const buildNode = (row: AssetRow): AssetHierarchyNode => ({
+    id: row.id,
+    parentId: row.parentId,
+    type: row.type,
+    name: row.name,
+    location: row.location,
+    companyId: row.companyId,
+    photoUrl: row.photoUrl,
+    children: (byParent.get(row.id) ?? []).map(buildNode),
+  });
+
+  return (byParent.get(null) ?? []).map(buildNode);
 }
 
 export async function listAssetHierarchy(tenantId: string) {
@@ -80,7 +62,7 @@ export async function listAssetHierarchy(tenantId: string) {
 export async function createAssetRecord(input: {
   tenantId: string;
   name: string;
-  type: "country" | "plant" | "area" | "equipment";
+  type: AssetNodeType;
   parentId?: string;
   location?: string;
   companyId?: string;

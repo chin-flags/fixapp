@@ -7,11 +7,11 @@ import { AppShell } from "@/components/app-shell";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AssetTree } from "@/components/assets/AssetTree";
 import { createAssetNode, deleteAssetNode, fetchAssetHierarchy, updateAssetNode } from "@/lib/backend-api";
-import type { AssetHierarchyCountry } from "@/lib/db/queries/assets";
+import type { AssetHierarchyNode, AssetNodeType } from "@/lib/db/queries/assets";
 
 export default function AssetsClient() {
   const { data: session } = useSession();
-  const [hierarchy, setHierarchy] = useState<AssetHierarchyCountry[]>([]);
+  const [hierarchy, setHierarchy] = useState<AssetHierarchyNode[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
 
@@ -36,34 +36,32 @@ export default function AssetsClient() {
   }, [session?.user?.accessToken]);
 
   const stats = useMemo(() => {
-    const countries = hierarchy.length;
-    const plants = hierarchy.reduce((sum, country) => sum + (country.plants?.length || 0), 0);
-    const areas = hierarchy.reduce(
-      (sum, country) =>
-        sum +
-        (country.plants?.reduce((inner, plant) => inner + (plant.areas?.length || 0), 0) || 0),
-      0
-    );
-    const equipment = hierarchy.reduce(
-      (sum, country) =>
-        sum +
-        (country.plants?.reduce(
-          (inner, plant) =>
-            inner + (plant.areas?.reduce((inner2, area) => inner2 + (area.equipment?.length || 0), 0) || 0),
-          0
-        ) ||
-          0),
-      0
-    );
-    return { countries, plants, areas, equipment };
+    const counts: Record<AssetNodeType, number> = {
+      country: 0,
+      plant: 0,
+      area: 0,
+      equipment: 0,
+    };
+
+    const walk = (nodes: AssetHierarchyNode[]) => {
+      for (const node of nodes) {
+        counts[node.type] += 1;
+        walk(node.children);
+      }
+    };
+
+    walk(hierarchy);
+    return counts;
   }, [hierarchy]);
 
-  const addCountry = async (formData: FormData) => {
+  const addAsset = async (formData: FormData) => {
     const name = String(formData.get("name") || "").trim();
+    const type = String(formData.get("type") || "").trim() as AssetNodeType;
     const location = String(formData.get("location") || "").trim();
+    const parentId = String(formData.get("parentId") || "").trim();
     const companyId = String(formData.get("companyId") || "").trim();
     const photoUrl = String(formData.get("photoUrl") || "").trim();
-    if (!name) {
+    if (!name || !["country", "plant", "area", "equipment"].includes(type)) {
       return { success: false, message: "Name is required." };
     }
 
@@ -73,7 +71,8 @@ export default function AssetsClient() {
 
     const result = await createAssetNode(session.user.accessToken, {
       name,
-      type: "country",
+      type,
+      parentId: parentId || undefined,
       location: location || undefined,
       companyId: companyId || undefined,
       photoUrl: photoUrl || undefined,
@@ -86,130 +85,7 @@ export default function AssetsClient() {
     return result;
   };
 
-  const addPlant = async (formData: FormData) => {
-    const name = String(formData.get("name") || "").trim();
-    const location = String(formData.get("location") || "").trim();
-    const parentId = String(formData.get("parentId") || "").trim();
-    const companyId = String(formData.get("companyId") || "").trim();
-    const photoUrl = String(formData.get("photoUrl") || "").trim();
-    if (!name || !parentId) {
-      return { success: false, message: "Name and parent are required." };
-    }
-
-    if (!session?.user?.accessToken) {
-      return { success: false, message: "You must be signed in." };
-    }
-
-    const result = await createAssetNode(session.user.accessToken, {
-      name,
-      type: "plant",
-      parentId,
-      location: location || undefined,
-      companyId: companyId || undefined,
-      photoUrl: photoUrl || undefined,
-    });
-
-    if (result.success) {
-      await refreshHierarchy();
-    }
-
-    return result;
-  };
-
-  const addArea = async (formData: FormData) => {
-    const name = String(formData.get("name") || "").trim();
-    const location = String(formData.get("location") || "").trim();
-    const parentId = String(formData.get("parentId") || "").trim();
-    const companyId = String(formData.get("companyId") || "").trim();
-    const photoUrl = String(formData.get("photoUrl") || "").trim();
-    if (!name || !parentId) {
-      return { success: false, message: "Name and parent are required." };
-    }
-
-    if (!session?.user?.accessToken) {
-      return { success: false, message: "You must be signed in." };
-    }
-
-    const result = await createAssetNode(session.user.accessToken, {
-      name,
-      type: "area",
-      parentId,
-      location: location || undefined,
-      companyId: companyId || undefined,
-      photoUrl: photoUrl || undefined,
-    });
-
-    if (result.success) {
-      await refreshHierarchy();
-    }
-
-    return result;
-  };
-
-  const addEquipment = async (formData: FormData) => {
-    const name = String(formData.get("name") || "").trim();
-    const location = String(formData.get("location") || "").trim();
-    const parentId = String(formData.get("parentId") || "").trim();
-    const companyId = String(formData.get("companyId") || "").trim();
-    const photoUrl = String(formData.get("photoUrl") || "").trim();
-    if (!name || !parentId) {
-      return { success: false, message: "Name and parent are required." };
-    }
-
-    if (!session?.user?.accessToken) {
-      return { success: false, message: "You must be signed in." };
-    }
-
-    const result = await createAssetNode(session.user.accessToken, {
-      name,
-      type: "equipment",
-      parentId,
-      location: location || undefined,
-      companyId: companyId || undefined,
-      photoUrl: photoUrl || undefined,
-    });
-
-    if (result.success) {
-      await refreshHierarchy();
-    }
-
-    return result;
-  };
-
-  const deleteCountry = async (id: string) => {
-    if (!session?.user?.accessToken) {
-      return { success: false, message: "You must be signed in." };
-    }
-    const result = await deleteAssetNode(session.user.accessToken, id);
-    if (result.success) {
-      await refreshHierarchy();
-    }
-    return result;
-  };
-
-  const deletePlant = async (id: string) => {
-    if (!session?.user?.accessToken) {
-      return { success: false, message: "You must be signed in." };
-    }
-    const result = await deleteAssetNode(session.user.accessToken, id);
-    if (result.success) {
-      await refreshHierarchy();
-    }
-    return result;
-  };
-
-  const deleteArea = async (id: string) => {
-    if (!session?.user?.accessToken) {
-      return { success: false, message: "You must be signed in." };
-    }
-    const result = await deleteAssetNode(session.user.accessToken, id);
-    if (result.success) {
-      await refreshHierarchy();
-    }
-    return result;
-  };
-
-  const deleteEquipment = async (id: string) => {
+  const deleteAsset = async (id: string) => {
     if (!session?.user?.accessToken) {
       return { success: false, message: "You must be signed in." };
     }
@@ -241,13 +117,16 @@ export default function AssetsClient() {
       }}
       actions={
         <div className="inline-flex items-center gap-2 rounded-full border border-border bg-background px-3 py-1 text-xs text-muted-foreground">
-          Countries {stats.countries} • Plants {stats.plants} • Areas {stats.areas} • Equipment {stats.equipment}
+          Countries {stats.country} • Plants {stats.plant} • Areas {stats.area} • Equipment {stats.equipment}
         </div>
       }
     >
       <Card className="border-border/80 bg-card/90 backdrop-blur">
         <CardHeader>
           <CardTitle>Asset Hierarchy</CardTitle>
+          <p className="text-sm text-muted-foreground">
+            Build a flexible hierarchy. Each node can be any supported type and children choose their own type when created.
+          </p>
         </CardHeader>
         <CardContent>
           {loadError ? (
@@ -260,18 +139,8 @@ export default function AssetsClient() {
           ) : (
             <AssetTree
               hierarchy={hierarchy}
-              onAdd={{
-                country: addCountry,
-                plant: addPlant,
-                area: addArea,
-                equipment: addEquipment,
-              }}
-              onDelete={{
-                country: deleteCountry,
-                plant: deletePlant,
-                area: deleteArea,
-                equipment: deleteEquipment,
-              }}
+              onAdd={addAsset}
+              onDelete={deleteAsset}
               onUpdate={updateAsset}
             />
           )}

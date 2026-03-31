@@ -10,11 +10,15 @@ import { SectionCards } from "@/components/section-cards";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { AssetExplorerPicker, findExplorerNodeById } from "@/components/assets/AssetExplorerPicker";
-import type { AssetHierarchyCountry } from "@/lib/db/queries/assets";
+import { AssetExplorerPicker, findExplorerNodeById, type ExplorerNode } from "@/components/assets/AssetExplorerPicker";
+import type { AssetHierarchyNode } from "@/lib/db/queries/assets";
+import type { TicketListFilters } from "@/lib/server/operations-records";
+import TicketFilters from "./TicketFilters";
 
 type Props = {
   tickets: MaintenanceTicket[];
+  filters: TicketListFilters;
+  activeFilterCount: number;
 };
 
 const PRIORITY_OPTIONS = ["low", "medium", "high", "critical"];
@@ -26,12 +30,12 @@ const BADGE_STYLES = {
   clear: "border-emerald-300 bg-emerald-50 text-emerald-800",
 } as const;
 
-export default function TicketsClient({ tickets }: Props) {
+export default function TicketsClient({ tickets, filters, activeFilterCount }: Props) {
   const { data: session } = useSession();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
-  const [assetHierarchy, setAssetHierarchy] = useState<AssetHierarchyCountry[]>([]);
+  const [assetHierarchy, setAssetHierarchy] = useState<AssetHierarchyNode[]>([]);
   const [assetsLoading, setAssetsLoading] = useState(false);
   const [assetsError, setAssetsError] = useState<string | null>(null);
   const [selectedAssetId, setSelectedAssetId] = useState<string | null>(null);
@@ -47,24 +51,14 @@ export default function TicketsClient({ tickets }: Props) {
 
   const selectedAsset = useMemo(
     () => findExplorerNodeById(
-      assetHierarchy.map((country) => ({
-        ...country,
-        nodeType: "country" as const,
-        children: (country.plants ?? []).map((plant) => ({
-          ...plant,
-          nodeType: "plant" as const,
-          children: (plant.areas ?? []).map((area) => ({
-            ...area,
-            nodeType: "area" as const,
-            children: (area.equipment ?? []).map((equipment) => ({
-              ...equipment,
-              nodeType: "equipment" as const,
-              children: [],
-            })),
-          })),
-        })),
-      })),
-      selectedAssetId
+      assetHierarchy.map(
+        (node): ExplorerNode => ({
+          ...node,
+          nodeType: node.type,
+          children: node.children as ExplorerNode[],
+        }),
+      ),
+      selectedAssetId,
     ),
     [assetHierarchy, selectedAssetId]
   );
@@ -220,6 +214,8 @@ export default function TicketsClient({ tickets }: Props) {
           ]}
         />
 
+        <TicketFilters filters={filters} activeFilterCount={activeFilterCount} />
+
         <Card>
           <CardHeader>
             <CardTitle>Recent Tickets</CardTitle>
@@ -227,7 +223,9 @@ export default function TicketsClient({ tickets }: Props) {
           <CardContent className="px-0">
             {tickets.length === 0 ? (
               <div className="px-6 pb-6 text-sm text-muted-foreground">
-                No maintenance tickets yet. Create the first ticket to get started.
+                {activeFilterCount > 0
+                  ? "No tickets matched the selected filters."
+                  : "No maintenance tickets yet. Create the first ticket to get started."}
               </div>
             ) : (
               <div className="overflow-x-auto px-6 pb-6">

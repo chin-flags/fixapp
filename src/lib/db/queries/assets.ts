@@ -1,34 +1,12 @@
-export type AssetHierarchyEquipment = {
-  id: string;
-  name: string;
-  location?: string | null;
-  companyId?: string | null;
-  photoUrl?: string | null;
-};
+export type AssetNodeType = "country" | "plant" | "area" | "equipment";
 
-export type AssetHierarchyArea = {
+export type AssetHierarchyNode = {
   id: string;
+  parentId?: string | null;
+  type: AssetNodeType;
   name: string;
   location?: string | null;
   companyId?: string | null;
   photoUrl?: string | null;
-  equipment?: AssetHierarchyEquipment[] | null;
-};
-
-export type AssetHierarchyPlant = {
-  id: string;
-  name: string;
-  location?: string | null;
-  companyId?: string | null;
-  photoUrl?: string | null;
-  areas?: AssetHierarchyArea[] | null;
-};
-
-export type AssetHierarchyCountry = {
-  id: string;
-  name: string;
-  location?: string | null;
-  companyId?: string | null;
-  photoUrl?: string | null;
-  plants?: AssetHierarchyPlant[] | null;
+  children: AssetHierarchyNode[];
 };

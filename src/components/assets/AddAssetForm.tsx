@@ -1,26 +1,28 @@
 "use client";
 
 import * as React from "react";
-
-export type AssetFormLevel = "country" | "plant" | "area" | "equipment";
+import type { AssetNodeType } from "@/lib/db/queries/assets";
 
 interface AddAssetFormProps {
-  level: AssetFormLevel;
   onAdd: (formData: FormData) => Promise<{ success: boolean; message: string }>;
   trigger: React.ReactNode;
   parentId?: string;
+  parentName?: string;
 }
 
-const LABELS: Record<AssetFormLevel, string> = {
+const TYPE_OPTIONS: AssetNodeType[] = ["country", "plant", "area", "equipment"];
+
+const LABELS: Record<AssetNodeType, string> = {
   country: "Country",
   plant: "Plant",
   area: "Area",
   equipment: "Equipment",
 };
 
-export function AddAssetForm({ level, onAdd, trigger, parentId }: AddAssetFormProps) {
+export function AddAssetForm({ onAdd, trigger, parentId, parentName }: AddAssetFormProps) {
   const [open, setOpen] = React.useState(false);
   const [name, setName] = React.useState("");
+  const [type, setType] = React.useState<AssetNodeType>("equipment");
   const [location, setLocation] = React.useState("");
   const [companyId, setCompanyId] = React.useState("");
   const [photoUrl, setPhotoUrl] = React.useState("");
@@ -29,11 +31,16 @@ export function AddAssetForm({ level, onAdd, trigger, parentId }: AddAssetFormPr
 
   const reset = () => {
     setName("");
+    setType(parentId ? "equipment" : "country");
     setLocation("");
     setCompanyId("");
     setPhotoUrl("");
     setError(null);
   };
+
+  React.useEffect(() => {
+    setType(parentId ? "equipment" : "country");
+  }, [parentId]);
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -46,6 +53,7 @@ export function AddAssetForm({ level, onAdd, trigger, parentId }: AddAssetFormPr
 
     const formData = new FormData();
     formData.set("name", name.trim());
+    formData.set("type", type);
     formData.set("location", location.trim());
     formData.set("companyId", companyId.trim());
     formData.set("photoUrl", photoUrl.trim());
@@ -80,50 +88,69 @@ export function AddAssetForm({ level, onAdd, trigger, parentId }: AddAssetFormPr
     <div className="space-y-3">
       {triggerNode}
       {open ? (
-        <form className="space-y-3 rounded-lg border border-slate-800/70 bg-slate-900/40 p-3" onSubmit={handleSubmit}>
-          <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">
-            Add {LABELS[level]}
+        <form className="space-y-3 rounded-lg border border-border bg-card p-3" onSubmit={handleSubmit}>
+          <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            {parentId ? `Add Child Node${parentName ? ` to ${parentName}` : ""}` : "Add Root Node"}
           </div>
           {error ? (
-            <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+            <div className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
               {error}
             </div>
           ) : null}
 
-          <div>
-            <label className="block text-sm font-medium text-slate-200" htmlFor={`asset-name-${level}`}>
-              Name
-            </label>
-            <input
-              id={`asset-name-${level}`}
-              type="text"
-              className="mt-1 w-full rounded-md border border-slate-700 bg-slate-900/70 px-3 py-2 text-sm text-slate-100 outline-none focus:border-slate-400"
-              value={name}
-              onChange={(event) => setName(event.target.value)}
-            />
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div>
+              <label className="block text-sm font-medium text-foreground" htmlFor={`asset-name-${parentId ?? "root"}`}>
+                Name
+              </label>
+              <input
+                id={`asset-name-${parentId ?? "root"}`}
+                type="text"
+                className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-ring"
+                value={name}
+                onChange={(event) => setName(event.target.value)}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-foreground" htmlFor={`asset-type-${parentId ?? "root"}`}>
+                Node Type
+              </label>
+              <select
+                id={`asset-type-${parentId ?? "root"}`}
+                className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-ring"
+                value={type}
+                onChange={(event) => setType(event.target.value as AssetNodeType)}
+              >
+                {TYPE_OPTIONS.map((option) => (
+                  <option key={option} value={option}>
+                    {LABELS[option]}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
 
           <div className="grid gap-3 sm:grid-cols-2">
             <div>
-              <label className="block text-sm font-medium text-slate-200" htmlFor={`asset-company-${level}`}>
+              <label className="block text-sm font-medium text-foreground" htmlFor={`asset-company-${parentId ?? "root"}`}>
                 Company ID
               </label>
               <input
-                id={`asset-company-${level}`}
+                id={`asset-company-${parentId ?? "root"}`}
                 type="text"
-                className="mt-1 w-full rounded-md border border-slate-700 bg-slate-900/70 px-3 py-2 text-sm text-slate-100 outline-none focus:border-slate-400"
+                className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-ring"
                 value={companyId}
                 onChange={(event) => setCompanyId(event.target.value)}
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-200" htmlFor={`asset-location-${level}`}>
+              <label className="block text-sm font-medium text-foreground" htmlFor={`asset-location-${parentId ?? "root"}`}>
                 Location
               </label>
               <input
-                id={`asset-location-${level}`}
+                id={`asset-location-${parentId ?? "root"}`}
                 type="text"
-                className="mt-1 w-full rounded-md border border-slate-700 bg-slate-900/70 px-3 py-2 text-sm text-slate-100 outline-none focus:border-slate-400"
+                className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-ring"
                 value={location}
                 onChange={(event) => setLocation(event.target.value)}
               />
@@ -131,13 +158,13 @@ export function AddAssetForm({ level, onAdd, trigger, parentId }: AddAssetFormPr
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-200" htmlFor={`asset-photo-${level}`}>
+            <label className="block text-sm font-medium text-foreground" htmlFor={`asset-photo-${parentId ?? "root"}`}>
               Photo URL
             </label>
             <input
-              id={`asset-photo-${level}`}
+              id={`asset-photo-${parentId ?? "root"}`}
               type="text"
-              className="mt-1 w-full rounded-md border border-slate-700 bg-slate-900/70 px-3 py-2 text-sm text-slate-100 outline-none focus:border-slate-400"
+              className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-ring"
               value={photoUrl}
               onChange={(event) => setPhotoUrl(event.target.value)}
             />
@@ -147,9 +174,9 @@ export function AddAssetForm({ level, onAdd, trigger, parentId }: AddAssetFormPr
             <button
               type="submit"
               disabled={isSubmitting}
-              className="inline-flex flex-1 items-center justify-center rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-70"
+              className="inline-flex flex-1 items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-70"
             >
-              {isSubmitting ? "Saving..." : `Add ${LABELS[level]}`}
+              {isSubmitting ? "Saving..." : `Add ${LABELS[type]}`}
             </button>
             <button
               type="button"
@@ -157,7 +184,7 @@ export function AddAssetForm({ level, onAdd, trigger, parentId }: AddAssetFormPr
                 reset();
                 setOpen(false);
               }}
-              className="inline-flex items-center justify-center rounded-md border border-slate-700 px-4 py-2 text-sm text-slate-300 hover:text-white"
+              className="inline-flex items-center justify-center rounded-md border border-border px-4 py-2 text-sm text-foreground hover:bg-muted"
             >
               Cancel
             </button>
