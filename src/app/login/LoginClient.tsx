@@ -2,11 +2,14 @@
 
 import { useMemo, useState, useTransition } from "react";
 import { signIn } from "next-auth/react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { AuthShell } from "@/components/auth/auth-shell";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 export default function LoginClient() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const callbackUrl = useMemo(
     () => searchParams.get("callbackUrl") || "/dashboard",
@@ -46,15 +49,29 @@ export default function LoginClient() {
   };
 
   return (
-    <main className="min-h-screen bg-slate-50 flex items-center justify-center px-4">
-      <div className="w-full max-w-md rounded-xl border border-slate-200 bg-white p-8 shadow-sm">
-        <h1 className="text-2xl font-semibold text-slate-900">Sign in</h1>
-        <p className="mt-2 text-sm text-slate-600">
-          Use one of the seeded accounts to log in. Subdomain is usually &quot;demo&quot;.
-        </p>
-
+    <AuthShell
+      eyebrow="Sign in"
+      title="Access your workspace"
+      description="Sign in to manage RCAs, assets, and team workflows in your tenant."
+      footer={(
+        <div className="flex items-center justify-between gap-4">
+          <Link
+            href="/signup"
+            className="font-medium text-foreground transition-colors hover:text-primary"
+          >
+            Create an account
+          </Link>
+          <Link
+            href="/forgot-password"
+            className="font-medium text-muted-foreground transition-colors hover:text-foreground"
+          >
+            Forgot password?
+          </Link>
+        </div>
+      )}
+    >
         {(error || formError) && (
-          <div className="mt-4 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+          <div className="rounded-lg border border-destructive/20 bg-destructive/10 px-3 py-2 text-sm text-destructive">
             {formError || (error === "tenant-session"
               ? "Your previous session was missing tenant context. Please sign in again."
               : error === "session-expired"
@@ -64,104 +81,79 @@ export default function LoginClient() {
         )}
 
         {success === "password-reset" && (
-          <div className="mt-4 rounded-md border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-700">
+          <div className="rounded-lg border border-primary/20 bg-primary/10 px-3 py-2 text-sm text-primary">
             Password reset successful. Please sign in with your new password.
           </div>
         )}
 
         {success === "registered" && (
-          <div className="mt-4 rounded-md border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-700">
+          <div className="rounded-lg border border-primary/20 bg-primary/10 px-3 py-2 text-sm text-primary">
             Account created successfully. Please sign in.
           </div>
         )}
 
         {success === "joined" && (
-          <div className="mt-4 rounded-md border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-700">
+          <div className="rounded-lg border border-primary/20 bg-primary/10 px-3 py-2 text-sm text-primary">
             Invite accepted. Please sign in to enter the workspace.
           </div>
         )}
 
-        <form className="mt-6 space-y-4" onSubmit={onSubmit}>
-          <div>
-            <label className="block text-sm font-medium text-slate-700" htmlFor="email">
+        <form className="space-y-4" onSubmit={onSubmit}>
+          <div className="space-y-2">
+            <Label htmlFor="email">
               Email
-            </label>
-            <input
+            </Label>
+            <Input
               id="email"
               type="email"
               autoComplete="email"
-              className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-500"
+              placeholder="name@company.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-slate-700" htmlFor="subdomain">
+          <div className="space-y-2">
+            <Label htmlFor="subdomain">
               Subdomain
-            </label>
-            <div className="mt-1 flex rounded-md">
-              <input
+            </Label>
+            <div className="flex rounded-md">
+              <Input
                 id="subdomain"
                 type="text"
                 autoComplete="organization"
-                className="w-full rounded-l-md border border-slate-300 border-r-0 px-3 py-2 text-sm outline-none focus:border-slate-500"
+                className="rounded-r-none border-r-0"
+                placeholder="workspace"
                 value={subdomain}
                 onChange={(e) => setSubdomain(e.target.value)}
               />
-              <span className="flex items-center rounded-r-md border border-l-0 border-slate-300 bg-slate-50 px-3 text-sm text-slate-500">
+              <span className="flex items-center rounded-r-md border border-l-0 border-input bg-muted px-3 text-sm text-muted-foreground">
                 .fixapp.com
               </span>
             </div>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-slate-700" htmlFor="password">
+          <div className="space-y-2">
+            <Label htmlFor="password">
               Password
-            </label>
-            <input
+            </Label>
+            <Input
               id="password"
               type="password"
               autoComplete="current-password"
-              className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-500"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />
           </div>
 
-          <button
+          <Button
             type="submit"
             disabled={isPending}
-            className="w-full rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-70"
+            className="w-full"
           >
             {isPending ? "Signing in..." : "Sign in"}
-          </button>
+          </Button>
         </form>
-
-        <div className="mt-6 flex items-center justify-between text-sm">
-          <Link
-            href="/signup"
-            className="text-slate-600 hover:text-slate-900 hover:underline"
-          >
-            Create an account
-          </Link>
-          <Link
-            href="/forgot-password"
-            className="text-slate-600 hover:text-slate-900 hover:underline"
-          >
-            Forgot password?
-          </Link>
-        </div>
-
-        <div className="mt-6 text-xs text-slate-500">
-          Demo accounts:
-          <ul className="mt-2 list-disc pl-5">
-            <li>admin@fixapp.com / admin123</li>
-            <li>owner@fixapp.com / owner123</li>
-            <li>member@fixapp.com / member123</li>
-          </ul>
-        </div>
-      </div>
-    </main>
+    </AuthShell>
   );
 }

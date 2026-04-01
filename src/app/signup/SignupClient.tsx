@@ -4,6 +4,10 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { AuthShell } from "@/components/auth/auth-shell";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 export default function SignupClient() {
   const router = useRouter();
@@ -83,138 +87,134 @@ export default function SignupClient() {
   };
 
   return (
-    <main className="min-h-screen bg-slate-50 flex items-center justify-center px-4">
-      <div className="w-full max-w-md rounded-xl border border-slate-200 bg-white p-8 shadow-sm">
-        <h1 className="text-2xl font-semibold text-slate-900">Create an account</h1>
-        <p className="mt-2 text-sm text-slate-600">
-          Set up your organization and get started.
-        </p>
-
+    <AuthShell
+      eyebrow="Create account"
+      title="Set up your FixApp workspace"
+      description="Create a tenant, claim your subdomain, and start organizing operational work in one place."
+      footer={(
+        <div className="text-center">
+          Already have an account?{" "}
+          <Link
+            href="/login"
+            className="font-medium text-foreground transition-colors hover:text-primary"
+          >
+            Sign in
+          </Link>
+        </div>
+      )}
+    >
         {formError && (
-          <div className="mt-4 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+          <div className="rounded-lg border border-destructive/20 bg-destructive/10 px-3 py-2 text-sm text-destructive">
             {formError}
           </div>
         )}
 
-        <form className="mt-6 space-y-4" onSubmit={onSubmit}>
-          <div>
-            <label className="block text-sm font-medium text-slate-700" htmlFor="name">
+        <form className="space-y-4" onSubmit={onSubmit}>
+          <div className="space-y-2">
+            <Label htmlFor="name">
               Full Name
-            </label>
-            <input
+            </Label>
+            <Input
               id="name"
               name="name"
               type="text"
               autoComplete="name"
-              className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-500"
+              placeholder="Alex Morgan"
               value={formData.name}
               onChange={handleChange}
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-slate-700" htmlFor="email">
+          <div className="space-y-2">
+            <Label htmlFor="email">
               Email
-            </label>
-            <input
+            </Label>
+            <Input
               id="email"
               name="email"
               type="email"
               autoComplete="email"
-              className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-500"
+              placeholder="alex@company.com"
               value={formData.email}
               onChange={handleChange}
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-slate-700" htmlFor="tenantName">
+          <div className="space-y-2">
+            <Label htmlFor="tenantName">
               Organization Name
-            </label>
-            <input
+            </Label>
+            <Input
               id="tenantName"
               name="tenantName"
               type="text"
               autoComplete="organization"
-              className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-500"
+              placeholder="Northwind Manufacturing"
               value={formData.tenantName}
               onChange={handleChange}
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-slate-700" htmlFor="subdomain">
+          <div className="space-y-2">
+            <Label htmlFor="subdomain">
               Subdomain
-            </label>
-            <div className="mt-1 flex rounded-md">
-              <input
+            </Label>
+            <div className="flex rounded-md">
+              <Input
                 id="subdomain"
                 name="subdomain"
                 type="text"
                 autoComplete="subdomain"
-                placeholder="mycompany"
-                className="w-full rounded-l-md border border-slate-300 border-r-0 px-3 py-2 text-sm outline-none focus:border-slate-500"
+                placeholder="northwind"
+                className="rounded-r-none border-r-0"
                 value={formData.subdomain}
                 onChange={handleChange}
               />
-              <span className="flex items-center rounded-r-md border border-l-0 border-slate-300 bg-slate-50 px-3 text-sm text-slate-500">
+              <span className="flex items-center rounded-r-md border border-l-0 border-input bg-muted px-3 text-sm text-muted-foreground">
                 .fixapp.com
               </span>
             </div>
-            <p className="mt-1 text-xs text-slate-500">
+            <p className="text-xs text-muted-foreground">
               This will be your unique URL (e.g., mycompany.fixapp.com)
             </p>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-slate-700" htmlFor="password">
+          <div className="space-y-2">
+            <Label htmlFor="password">
               Password
-            </label>
-            <input
+            </Label>
+            <Input
               id="password"
               name="password"
               type="password"
               autoComplete="new-password"
-              className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-500"
               value={formData.password}
               onChange={handleChange}
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-slate-700" htmlFor="confirmPassword">
+          <div className="space-y-2">
+            <Label htmlFor="confirmPassword">
               Confirm Password
-            </label>
-            <input
+            </Label>
+            <Input
               id="confirmPassword"
               name="confirmPassword"
               type="password"
               autoComplete="new-password"
-              className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-500"
               value={formData.confirmPassword}
               onChange={handleChange}
             />
           </div>
 
-          <button
+          <Button
             type="submit"
             disabled={isPending}
-            className="w-full rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-70"
+            className="w-full"
           >
             {isPending ? "Creating account..." : "Create account"}
-          </button>
+          </Button>
         </form>
-
-        <div className="mt-6 text-center text-sm text-slate-600">
-          Already have an account?{" "}
-          <Link
-            href="/login"
-            className="text-slate-900 hover:underline font-medium"
-          >
-            Sign in
-          </Link>
-        </div>
-      </div>
-    </main>
+    </AuthShell>
   );
 }

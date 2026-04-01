@@ -19,6 +19,7 @@ type Props = {
   tickets: MaintenanceTicket[];
   filters: TicketListFilters;
   activeFilterCount: number;
+  initialModalOpen?: boolean;
 };
 
 const PRIORITY_OPTIONS = ["low", "medium", "high", "critical"];
@@ -30,9 +31,14 @@ const BADGE_STYLES = {
   clear: "border-emerald-300 bg-emerald-50 text-emerald-800",
 } as const;
 
-export default function TicketsClient({ tickets, filters, activeFilterCount }: Props) {
+export default function TicketsClient({
+  tickets,
+  filters,
+  activeFilterCount,
+  initialModalOpen = false,
+}: Props) {
   const { data: session } = useSession();
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(initialModalOpen);
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [assetHierarchy, setAssetHierarchy] = useState<AssetHierarchyNode[]>([]);
@@ -67,18 +73,15 @@ export default function TicketsClient({ tickets, filters, activeFilterCount }: P
     if (!session?.user?.accessToken) return;
     let active = true;
 
-    const loadContext = async () => {
+    const loadAssets = async () => {
       setAssetsLoading(true);
       setAssetsError(null);
+
       try {
-        const [assets, config] = await Promise.all([
-          fetchAssetHierarchy(session.user.accessToken),
-          fetchTicketImpactConfig(session.user.accessToken),
-        ]);
+        const assets = await fetchAssetHierarchy(session.user.accessToken);
 
         if (active) {
           setAssetHierarchy(assets);
-          setImpactConfig(config);
         }
       } catch (loadError) {
         if (active) {
@@ -91,7 +94,22 @@ export default function TicketsClient({ tickets, filters, activeFilterCount }: P
       }
     };
 
-    loadContext();
+    const loadImpactConfig = async () => {
+      try {
+        const config = await fetchTicketImpactConfig(session.user.accessToken);
+        if (active) {
+          setImpactConfig(config);
+        }
+      } catch (loadError) {
+        console.error("Unable to load impact config for ticket modal:", loadError);
+        if (active) {
+          setImpactConfig(null);
+        }
+      }
+    };
+
+    void loadAssets();
+    void loadImpactConfig();
 
     return () => {
       active = false;

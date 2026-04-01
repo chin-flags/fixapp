@@ -33,8 +33,14 @@ export default async function TicketsPage({ searchParams }: PageProps) {
   const filters = buildFilters(resolvedSearchParams);
   const tickets = await listTicketsForTenant(session.user.tenantId, filters);
   const activeFilterCount = Object.values(filters).filter(Boolean).length;
+  const initialModalOpen = getSingleValue(resolvedSearchParams.new) === "1";
 
   return (
-    <TicketsClient tickets={tickets} filters={filters} activeFilterCount={activeFilterCount} />
+    <TicketsClient
+      tickets={tickets}
+      filters={filters}
+      activeFilterCount={activeFilterCount}
+      initialModalOpen={initialModalOpen}
+    />
   );
 }

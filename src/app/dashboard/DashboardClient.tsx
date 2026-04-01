@@ -45,10 +45,10 @@ export default function DashboardClient({ summary, userEmail, userRole }: Props)
       user={{ name: userEmail.split("@")[0], email: userEmail, role: userRole }}
       actions={
         <Link
-          href="/rca/new"
+          href="/tickets?new=1"
           className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-xs font-medium text-primary-foreground hover:bg-primary/90"
         >
-          New RCA
+          New Ticket
         </Link>
       }
     >
