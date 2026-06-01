@@ -271,9 +271,13 @@ export async function createTicketForTenant(
     orderBy: [desc(maintenanceTickets.createdAt)],
     columns: { ticketNumber: true },
   });
-  const nextNum = lastTicket
-    ? Number.parseInt(lastTicket.ticketNumber.replace("TKT-", ""), 10) + 1
-    : 1001;
+  let nextNum = 1001;
+  if (lastTicket) {
+    const match = lastTicket.ticketNumber.match(/(\d+)$/);
+    if (match) {
+      nextNum = Number.parseInt(match[1], 10) + 1;
+    }
+  }
   const ticketNumber = `TKT-${nextNum}`;
 
   const [ticket] = await db
@@ -325,9 +329,13 @@ export async function createRcaRecord(data: {
     orderBy: [desc(rcas.createdAt)],
     columns: { rcaNumber: true },
   });
-  const nextNum = lastRca
-    ? Number.parseInt(lastRca.rcaNumber.replace("RCA-", ""), 10) + 1
-    : 1001;
+  let nextNum = 1001;
+  if (lastRca) {
+    const match = lastRca.rcaNumber.match(/(\d+)$/);
+    if (match) {
+      nextNum = Number.parseInt(match[1], 10) + 1;
+    }
+  }
   const rcaNumber = `RCA-${nextNum}`;
 
   const [rca] = await db
