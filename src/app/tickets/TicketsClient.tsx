@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import type { MaintenanceTicket, CreateTicketInput, TicketImpactConfig } from "@/lib/backend-api";
 import { createTicket, fetchAssetHierarchy, fetchTicketImpactConfig } from "@/lib/backend-api";
 import { useSession } from "next-auth/react";
@@ -46,6 +46,19 @@ export default function TicketsClient({
   const [assetsError, setAssetsError] = useState<string | null>(null);
   const [selectedAssetId, setSelectedAssetId] = useState<string | null>(null);
   const [impactConfig, setImpactConfig] = useState<TicketImpactConfig | null>(null);
+
+  const modalRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (isModalOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isModalOpen]);
 
   const [form, setForm] = useState<CreateTicketInput>({
     equipmentName: "",
@@ -327,14 +340,14 @@ export default function TicketsClient({
       </AppShell>
 
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 px-4 py-8">
+        <div ref={modalRef} className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-slate-900/40 px-4 py-8">
           <button
             type="button"
-            className="absolute inset-0 h-full w-full cursor-default"
+            className="fixed inset-0 h-full w-full cursor-default"
             aria-label="Close modal overlay"
             onClick={() => setIsModalOpen(false)}
           />
-          <div className="relative w-full max-w-2xl rounded-2xl border border-border bg-card text-card-foreground shadow-xl">
+          <div className="relative w-full max-w-2xl rounded-2xl border border-border bg-card text-card-foreground shadow-xl my-auto">
             <div className="flex items-center justify-between border-b border-border px-6 py-4">
               <div>
                 <h3 className="text-lg font-semibold">New Maintenance Ticket</h3>
