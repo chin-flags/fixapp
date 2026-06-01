@@ -1,7 +1,10 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth/config";
 import RcaForm from "./RcaForm";
-import { buildBackendProxyUrl } from "@/lib/backend-endpoints";
+import {
+  listRcaOwnerOptions,
+  listTicketsForTenant,
+} from "@/lib/server/operations-records";
 
 type Props = {
   searchParams?: Promise<Record<string, string | string[] | undefined>>;
@@ -18,18 +21,19 @@ export default async function NewRcaPage({ searchParams }: Props) {
   const ticketIdParam = resolvedSearchParams.ticketId;
   const initialTicketId = Array.isArray(ticketIdParam) ? ticketIdParam[0] : ticketIdParam;
 
-  const metadataRes = await fetch(buildBackendProxyUrl("/rcas/metadata"), {
-    headers: {
-      Authorization: `Bearer ${session.user.accessToken}`,
-    },
-    cache: "no-store",
-  });
+  const [ticketRows, owners] = await Promise.all([
+    listTicketsForTenant(session.user.tenantId),
+    listRcaOwnerOptions(session.user.tenantId),
+  ]);
 
-  if (!metadataRes.ok) {
-    redirect("/dashboard");
-  }
-
-  const { tickets, owners } = await metadataRes.json();
+  const tickets = ticketRows.map((t) => ({
+    id: t.id,
+    ticketNumber: t.ticketNumber,
+    equipmentName: t.equipmentName,
+    location: t.location,
+    issueDescription: t.issueDescription,
+    requiresRca: t.requiresRca,
+  }));
 
   return (
     <main className="min-h-screen bg-background px-4 py-8">
