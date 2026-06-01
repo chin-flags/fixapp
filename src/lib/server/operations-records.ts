@@ -1,5 +1,5 @@
 import { and, asc, desc, eq, gte, ilike, isNull, lte, or } from "drizzle-orm";
-import type { MaintenanceTicket, RCARow, RcaListFilters } from "@/lib/backend-api";
+import type { CreateTicketInput, MaintenanceTicket, RCARow, RcaListFilters } from "@/lib/backend-api";
 import { db } from "@/lib/db";
 import {
   attachments,
@@ -238,6 +238,76 @@ export async function listTicketsForTenant(
       createdAt: rca.createdAt instanceof Date ? rca.createdAt.toISOString() : String(rca.createdAt),
     })),
   }));
+}
+
+export async function createTicketForTenant(
+  tenantId: string,
+  userId: string,
+  data: CreateTicketInput,
+): Promise<MaintenanceTicket> {
+  const priorityWeights: Record<string, number> = {
+    low: 1, medium: 2, high: 3, critical: 5,
+  };
+  const impactWeights: Record<string, number> = {
+    low: 1, medium: 2, high: 3, critical: 5,
+  };
+  const rcaThreshold = 5;
+  const autoFlagCritical = true;
+
+  const score =
+    (priorityWeights[data.priority] ?? 0) +
+    (impactWeights[data.impact] ?? 0);
+  const requiresRca =
+    (autoFlagCritical && (data.priority === "critical" || data.impact === "critical")) ||
+    score >= rcaThreshold;
+  const rcaRequiredReason = requiresRca
+    ? data.priority === "critical" || data.impact === "critical"
+      ? "Critical priority or impact automatically triggers RCA."
+      : `Score ${score} meets the RCA threshold of ${rcaThreshold}.`
+    : null;
+
+  const lastTicket = await getDb().query.maintenanceTickets.findFirst({
+    where: eq(maintenanceTickets.tenantId, tenantId),
+    orderBy: [desc(maintenanceTickets.createdAt)],
+    columns: { ticketNumber: true },
+  });
+  const nextNum = lastTicket
+    ? Number.parseInt(lastTicket.ticketNumber.replace("TKT-", ""), 10) + 1
+    : 1001;
+  const ticketNumber = `TKT-${nextNum}`;
+
+  const [ticket] = await db
+    .insert(maintenanceTickets)
+    .values({
+      tenantId,
+      ticketNumber,
+      priority: data.priority,
+      location: data.location,
+      equipmentName: data.equipmentName,
+      issueDescription: data.issueDescription,
+      impact: data.impact,
+      impactScore: score,
+      requiresRca,
+      rcaRequiredReason,
+      status: "open",
+      createdById: userId,
+    })
+    .returning();
+
+  return {
+    id: ticket.id,
+    ticketNumber: ticket.ticketNumber,
+    equipmentName: ticket.equipmentName,
+    location: ticket.location,
+    issueDescription: ticket.issueDescription,
+    priority: ticket.priority,
+    impact: ticket.impact,
+    impactScore: ticket.impactScore,
+    requiresRca: ticket.requiresRca,
+    rcaRequiredReason: ticket.rcaRequiredReason,
+    status: ticket.status,
+    createdAt: ticket.createdAt instanceof Date ? ticket.createdAt.toISOString() : String(ticket.createdAt),
+  };
 }
 
 export async function listRcasForTenantUser(
