@@ -32,10 +32,10 @@ export default async function NewRcaPage({ searchParams }: Props) {
   const { tickets, owners } = await metadataRes.json();
 
   return (
-    <main className="min-h-screen bg-slate-50 px-6 py-12">
-      <div className="mx-auto max-w-3xl rounded-xl border border-slate-200 bg-white p-8 shadow-sm">
-        <h1 className="text-2xl font-semibold text-slate-900">Create RCA</h1>
-        <p className="mt-2 text-sm text-slate-600">
+    <main className="min-h-screen bg-background px-4 py-8">
+      <div className="mx-auto max-w-3xl rounded-xl border border-border bg-card p-6 shadow-sm">
+        <h1 className="text-xl font-semibold text-card-foreground">Create RCA</h1>
+        <p className="mt-1 text-sm text-muted-foreground">
           Capture the issue details and assign ownership.
         </p>
         <RcaForm tickets={tickets} owners={owners} initialTicketId={initialTicketId} />

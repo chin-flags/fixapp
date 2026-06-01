@@ -310,6 +310,45 @@ export async function createTicketForTenant(
   };
 }
 
+export async function createRcaRecord(data: {
+  tenantId: string;
+  userId: string;
+  title: string;
+  description: string;
+  equipmentName: string;
+  location: string;
+  ownerId?: string | null;
+  maintenanceTicketId?: string | null;
+}): Promise<{ id: string; rcaNumber: string }> {
+  const lastRca = await getDb().query.rcas.findFirst({
+    where: eq(rcas.tenantId, data.tenantId),
+    orderBy: [desc(rcas.createdAt)],
+    columns: { rcaNumber: true },
+  });
+  const nextNum = lastRca
+    ? Number.parseInt(lastRca.rcaNumber.replace("RCA-", ""), 10) + 1
+    : 1001;
+  const rcaNumber = `RCA-${nextNum}`;
+
+  const [rca] = await db
+    .insert(rcas)
+    .values({
+      tenantId: data.tenantId,
+      rcaNumber,
+      title: data.title,
+      description: data.description,
+      equipmentName: data.equipmentName,
+      location: data.location,
+      status: "open",
+      ownerId: data.ownerId || null,
+      maintenanceTicketId: data.maintenanceTicketId || null,
+      createdById: data.userId,
+    })
+    .returning();
+
+  return { id: rca.id, rcaNumber: rca.rcaNumber };
+}
+
 export async function listRcasForTenantUser(
   user: TenantUser,
   filters: RcaListFilters = {},

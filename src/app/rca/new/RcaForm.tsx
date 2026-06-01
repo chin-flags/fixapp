@@ -148,19 +148,19 @@ export default function RcaForm({ tickets, owners, initialTicketId }: Props) {
   return (
     <form className="mt-6 space-y-4" onSubmit={onSubmit}>
       {error && (
-        <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+        <div className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
           {error}
         </div>
       )}
 
       <div>
-        <label className="block text-sm font-medium text-slate-700" htmlFor="title">
+        <label className="block text-sm font-medium text-card-foreground" htmlFor="title">
           Title
         </label>
         <input
           id="title"
           type="text"
-          className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-500"
+          className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground outline-none ring-ring transition-colors focus:ring-1"
           placeholder="Optional. We'll generate one from the issue details if left blank."
           value={title}
           onChange={(e) => setTitle(e.target.value)}
@@ -168,51 +168,51 @@ export default function RcaForm({ tickets, owners, initialTicketId }: Props) {
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-slate-700" htmlFor="description">
+        <label className="block text-sm font-medium text-card-foreground" htmlFor="description">
           Issue Description *
         </label>
         <textarea
           id="description"
           rows={4}
-          className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-500"
+          className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground outline-none ring-ring transition-colors focus:ring-1"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
         />
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-slate-700" htmlFor="equipmentName">
+        <label className="block text-sm font-medium text-card-foreground" htmlFor="equipmentName">
           Equipment *
         </label>
         <input
           id="equipmentName"
           type="text"
-          className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-500"
+          className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground outline-none ring-ring transition-colors focus:ring-1"
           value={equipmentName}
           onChange={(e) => setEquipmentName(e.target.value)}
         />
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-slate-700" htmlFor="location">
+        <label className="block text-sm font-medium text-card-foreground" htmlFor="location">
           Location *
         </label>
         <input
           id="location"
           type="text"
-          className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-500"
+          className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground outline-none ring-ring transition-colors focus:ring-1"
           value={location}
           onChange={(e) => setLocation(e.target.value)}
         />
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-slate-700" htmlFor="ticket">
+        <label className="block text-sm font-medium text-card-foreground" htmlFor="ticket">
           Linked Maintenance Ticket (optional)
         </label>
         <select
           id="ticket"
-          className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-500"
+          className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground outline-none ring-ring transition-colors focus:ring-1"
           value={maintenanceTicketId}
           onChange={(e) => onTicketChange(e.target.value)}
         >
@@ -226,15 +226,15 @@ export default function RcaForm({ tickets, owners, initialTicketId }: Props) {
       </div>
 
       {selectedTicket ? (
-        <div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
+        <div className="rounded-md border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-sm text-amber-400">
           <p className="font-medium">
             Prefilled from {selectedTicket.ticketNumber}
           </p>
-          <p className="mt-1 text-amber-800">
+          <p className="mt-1 text-amber-400/80">
             Location: {selectedTicket.location}
           </p>
           {selectedTicket.requiresRca ? (
-            <p className="mt-1 text-amber-800">
+            <p className="mt-1 text-amber-400/80">
               This ticket was flagged as requiring RCA.
             </p>
           ) : null}
@@ -242,12 +242,12 @@ export default function RcaForm({ tickets, owners, initialTicketId }: Props) {
       ) : null}
 
       <div>
-        <label className="block text-sm font-medium text-slate-700" htmlFor="owner">
+        <label className="block text-sm font-medium text-card-foreground" htmlFor="owner">
           RCA Owner (optional)
         </label>
         <select
           id="owner"
-          className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-500"
+          className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground outline-none ring-ring transition-colors focus:ring-1"
           value={ownerId}
           onChange={(e) => setOwnerId(e.target.value)}
         >
@@ -258,27 +258,27 @@ export default function RcaForm({ tickets, owners, initialTicketId }: Props) {
             </option>
           ))}
         </select>
-        <p className="mt-1 text-xs text-slate-500">
+        <p className="mt-1 text-xs text-muted-foreground">
           Leave unassigned to use automatic routing based on location and equipment.
         </p>
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-slate-700" htmlFor="attachments">
+        <label className="block text-sm font-medium text-card-foreground" htmlFor="attachments">
           Attachments
         </label>
         <input
           id="attachments"
           type="file"
           multiple
-          className="mt-1 block w-full text-sm text-slate-700 file:mr-4 file:rounded-md file:border-0 file:bg-slate-100 file:px-3 file:py-2 file:text-sm file:font-medium file:text-slate-700"
+          className="mt-1 block w-full text-sm text-foreground file:mr-4 file:rounded-md file:border-0 file:bg-muted file:px-3 file:py-2 file:text-sm file:font-medium file:text-foreground"
           onChange={(e) => setAttachments(Array.from(e.target.files ?? []))}
         />
-        <p className="mt-1 text-xs text-slate-500">
+        <p className="mt-1 text-xs text-muted-foreground">
           Upload up to 5 files, 10 MB each.
         </p>
         {attachments.length > 0 ? (
-          <ul className="mt-2 space-y-1 text-sm text-slate-600">
+          <ul className="mt-2 space-y-1 text-sm text-muted-foreground">
             {attachments.map((file) => (
               <li key={`${file.name}-${file.size}`}>
                 {file.name} ({Math.max(1, Math.round(file.size / 1024))} KB)
@@ -291,7 +291,7 @@ export default function RcaForm({ tickets, owners, initialTicketId }: Props) {
       <button
         type="submit"
         disabled={isPending}
-        className="w-full rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-70"
+        className="w-full rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-70"
       >
         {isPending ? "Creating..." : "Create RCA"}
       </button>
