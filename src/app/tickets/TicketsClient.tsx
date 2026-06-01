@@ -227,12 +227,6 @@ export default function TicketsClient({
             >
               New Ticket
             </button>
-            <Link
-              href="/"
-              className="inline-flex items-center justify-center rounded-md border border-border px-4 py-2 text-xs font-medium text-foreground hover:bg-accent"
-            >
-              Dashboard
-            </Link>
           </div>
         }
       >
