@@ -53,12 +53,13 @@ export function ChartAreaInteractive({ data }: { data: ThroughputPoint[] }) {
 
   const totalCreated = filteredData.reduce((sum, item) => sum + item.created, 0);
   const totalClosed = filteredData.reduce((sum, item) => sum + item.closed, 0);
+  const closureDelta = totalClosed - totalCreated;
 
   return (
-    <Card className="@container/card">
+    <Card className="@container/card overflow-hidden border border-border bg-[radial-gradient(circle_at_top_left,_hsla(291,96%,62%,0.12),_transparent_26%),radial-gradient(circle_at_bottom_right,_hsla(186,100%,50%,0.1),_transparent_24%)] shadow-sm">
       <CardHeader className="relative">
-        <CardTitle>RCA Throughput</CardTitle>
-        <CardDescription>
+        <CardTitle className="text-xl text-card-foreground">RCA Throughput</CardTitle>
+        <CardDescription className="text-sm text-muted-foreground">
           Created vs. closed RCAs over the selected window.
         </CardDescription>
         <div className="absolute right-4 top-4">
@@ -101,14 +102,21 @@ export function ChartAreaInteractive({ data }: { data: ThroughputPoint[] }) {
         </div>
       </CardHeader>
       <CardContent className="space-y-4 px-2 pt-4 sm:px-6 sm:pt-6">
-        <div className="grid gap-3 px-4 sm:grid-cols-2 sm:px-0">
-          <div className="rounded-lg border border-border/60 bg-muted/20 px-4 py-3">
-            <div className="text-xs uppercase tracking-wide text-muted-foreground">Created</div>
-            <div className="mt-1 text-2xl font-semibold">{totalCreated}</div>
+        <div className="grid gap-3 px-4 sm:grid-cols-3 sm:px-0">
+          <div className="rounded-2xl border border-primary/30 bg-primary/10 px-4 py-3">
+            <div className="text-sm font-medium text-primary">Created</div>
+            <div className="mt-1 text-2xl font-semibold text-card-foreground">{totalCreated}</div>
           </div>
-          <div className="rounded-lg border border-border/60 bg-muted/20 px-4 py-3">
-            <div className="text-xs uppercase tracking-wide text-muted-foreground">Closed</div>
-            <div className="mt-1 text-2xl font-semibold">{totalClosed}</div>
+          <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3">
+            <div className="text-sm font-medium text-emerald-400">Closed</div>
+            <div className="mt-1 text-2xl font-semibold text-card-foreground">{totalClosed}</div>
+          </div>
+          <div className="rounded-2xl border border-accent/30 bg-accent/10 px-4 py-3">
+            <div className="text-sm font-medium text-accent-foreground">Net movement</div>
+            <div className="mt-1 text-2xl font-semibold text-card-foreground">
+              {closureDelta > 0 ? "+" : ""}
+              {closureDelta}
+            </div>
           </div>
         </div>
         <ChartContainer config={chartConfig} className="aspect-auto h-[260px] w-full">

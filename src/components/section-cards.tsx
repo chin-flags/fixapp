@@ -1,4 +1,12 @@
-import { TrendingDownIcon, TrendingUpIcon } from "lucide-react"
+import {
+  AlertTriangleIcon,
+  CheckCircle2Icon,
+  Clock3Icon,
+  EyeIcon,
+  type LucideIcon,
+  TrendingDownIcon,
+  TrendingUpIcon,
+} from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
 import {
@@ -19,14 +27,70 @@ type CardItem = {
   }
 }
 
+const cardDecor: Array<{
+  icon: LucideIcon
+  accentClass: string
+  iconClass: string
+  labelClass: string
+  descriptionClass: string
+  valueClass: string
+}> = [
+  {
+    icon: EyeIcon,
+    accentClass:
+      "border-secondary/30 bg-[radial-gradient(circle_at_top_left,_hsla(186,100%,50%,0.12),_transparent_44%)]",
+    iconClass: "bg-secondary/15 text-secondary",
+    labelClass: "text-card-foreground",
+    descriptionClass: "text-muted-foreground",
+    valueClass: "text-card-foreground",
+  },
+  {
+    icon: Clock3Icon,
+    accentClass:
+      "border-amber-500/30 bg-[radial-gradient(circle_at_top_left,_hsla(30,100%,60%,0.12),_transparent_40%)]",
+    iconClass: "bg-amber-500/15 text-amber-400",
+    labelClass: "text-card-foreground",
+    descriptionClass: "text-muted-foreground",
+    valueClass: "text-card-foreground",
+  },
+  {
+    icon: CheckCircle2Icon,
+    accentClass:
+      "border-emerald-500/30 bg-[radial-gradient(circle_at_top_left,_hsla(160,60%,45%,0.12),_transparent_42%)]",
+    iconClass: "bg-emerald-500/15 text-emerald-400",
+    labelClass: "text-card-foreground",
+    descriptionClass: "text-muted-foreground",
+    valueClass: "text-card-foreground",
+  },
+  {
+    icon: AlertTriangleIcon,
+    accentClass:
+      "border-destructive/30 bg-[radial-gradient(circle_at_top_left,_hsla(0,84%,60%,0.12),_transparent_40%)]",
+    iconClass: "bg-destructive/15 text-destructive",
+    labelClass: "text-card-foreground",
+    descriptionClass: "text-muted-foreground",
+    valueClass: "text-card-foreground",
+  },
+]
+
 export function SectionCards({ items }: { items: CardItem[] }) {
   return (
-    <div className="grid grid-cols-1 gap-4 px-4 lg:grid-cols-2 xl:grid-cols-4 lg:px-6 *:data-[slot=card]:shadow-xs *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card">
-      {items.map((item) => (
-        <Card className="@container/card" key={item.label}>
+    <div className="grid grid-cols-1 gap-4 px-4 lg:grid-cols-2 xl:grid-cols-4 lg:px-6">
+      {items.map((item, index) => {
+        const decor = cardDecor[index % cardDecor.length]
+        const Icon = decor.icon
+
+        return (
+        <Card
+          className={`@container/card overflow-hidden border shadow-sm transition-transform duration-200 hover:-translate-y-1 hover:shadow-lg ${decor.accentClass}`}
+          key={item.label}
+        >
           <CardHeader className="relative">
-            <CardDescription>{item.label}</CardDescription>
-            <CardTitle className="@[250px]/card:text-3xl text-2xl font-semibold tabular-nums">
+            <div className={`mb-4 flex size-10 items-center justify-center rounded-2xl ${decor.iconClass}`}>
+              <Icon className="size-5" />
+            </div>
+            <CardDescription className={`text-base font-medium ${decor.labelClass}`}>{item.label}</CardDescription>
+            <CardTitle className={`@[250px]/card:text-4xl text-3xl font-semibold tabular-nums ${decor.valueClass}`}>
               {item.value}
             </CardTitle>
             {item.trend && (
@@ -42,11 +106,11 @@ export function SectionCards({ items }: { items: CardItem[] }) {
               </div>
             )}
           </CardHeader>
-          <CardFooter className="flex-col items-start gap-1 text-sm">
-            <div className="text-muted-foreground">{item.description}</div>
+          <CardFooter className="flex-col items-start gap-2 text-base">
+            <div className={decor.descriptionClass}>{item.description}</div>
           </CardFooter>
         </Card>
-      ))}
+      )})}
     </div>
   )
 }
