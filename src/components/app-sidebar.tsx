@@ -4,7 +4,6 @@ import * as React from "react"
 import {
   ArrowUpCircleIcon,
   ClipboardListIcon,
-  LayoutDashboardIcon,
   ListIcon,
   FolderIcon,
   SettingsIcon,
@@ -30,8 +29,7 @@ export function AppSidebar({
   user,
   brand = "Fixapp",
   navMain = [
-    { title: "Dashboard", url: "/", icon: LayoutDashboardIcon },
-    { title: "Tickets", url: "/tickets", icon: ClipboardListIcon },
+    { title: "Tickets", url: "/", icon: ClipboardListIcon },
     { title: "RCAs", url: "/rca", icon: ListIcon },
     { title: "Assets", url: "/assets", icon: FolderIcon },
   ],
