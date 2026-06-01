@@ -75,7 +75,7 @@ const cardDecor: Array<{
 
 export function SectionCards({ items }: { items: CardItem[] }) {
   return (
-    <div className="grid grid-cols-1 gap-4 px-4 lg:grid-cols-2 xl:grid-cols-4 lg:px-6">
+    <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 xl:grid-cols-4">
       {items.map((item, index) => {
         const decor = cardDecor[index % cardDecor.length]
         const Icon = decor.icon
@@ -90,7 +90,7 @@ export function SectionCards({ items }: { items: CardItem[] }) {
               <Icon className="size-5" />
             </div>
             <CardDescription className={`text-base font-medium ${decor.labelClass}`}>{item.label}</CardDescription>
-            <CardTitle className={`@[250px]/card:text-4xl text-3xl font-semibold tabular-nums ${decor.valueClass}`}>
+            <CardTitle className={`@[250px]/card:text-3xl text-2xl font-semibold tabular-nums ${decor.valueClass}`}>
               {item.value}
             </CardTitle>
             {item.trend && (

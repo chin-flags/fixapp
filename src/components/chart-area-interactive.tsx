@@ -58,8 +58,8 @@ export function ChartAreaInteractive({ data }: { data: ThroughputPoint[] }) {
   return (
     <Card className="@container/card overflow-hidden border border-border bg-[radial-gradient(circle_at_top_left,_hsla(291,96%,62%,0.12),_transparent_26%),radial-gradient(circle_at_bottom_right,_hsla(186,100%,50%,0.1),_transparent_24%)] shadow-sm">
       <CardHeader className="relative">
-        <CardTitle className="text-xl text-card-foreground">RCA Throughput</CardTitle>
-        <CardDescription className="text-sm text-muted-foreground">
+        <CardTitle className="text-lg text-card-foreground">RCA Throughput</CardTitle>
+        <CardDescription className="text-xs text-muted-foreground">
           Created vs. closed RCAs over the selected window.
         </CardDescription>
         <div className="absolute right-4 top-4">

@@ -81,39 +81,39 @@ export default function DashboardClient({ summary, userEmail, userRole }: Props)
         </Link>
       }
     >
-      <div className="space-y-6 px-4 lg:px-6">
+      <div className="space-y-4">
         <Card className="overflow-hidden border-0 bg-[radial-gradient(circle_at_top_left,_hsla(291,96%,62%,0.18),_transparent_24%),radial-gradient(circle_at_top_right,_hsla(186,100%,50%,0.14),_transparent_26%),linear-gradient(135deg,hsl(234,40%,10%)_0%,hsl(260,60%,30%)_58%,hsl(235,31%,16%)_100%)] text-white shadow-xl">
-          <CardHeader className="gap-6 lg:flex-row lg:items-end lg:justify-between">
+          <CardHeader className="gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div className="space-y-4">
               <Badge variant="outline" className="w-fit border-white/40 bg-white/12 px-3 py-1 text-sm font-medium text-white">
                 {summary.scopeLabel}
               </Badge>
               <div className="space-y-3">
-                <CardTitle className="text-3xl font-semibold tracking-tight text-white sm:text-4xl">
+                <CardTitle className="text-2xl font-semibold tracking-tight text-white sm:text-3xl">
                   RCA dashboard with a little pulse
                 </CardTitle>
-                <CardDescription className="max-w-2xl text-base leading-7 text-white/70">
+                <CardDescription className="max-w-2xl text-sm leading-6 text-white/70">
                   Current workload, momentum, and hotspots for the records visible to your role.
                 </CardDescription>
               </div>
             </div>
             <div className="grid gap-3 sm:grid-cols-2 lg:min-w-[360px]">
-              <div className="rounded-2xl border border-white/20 bg-white/12 p-5 backdrop-blur">
-                <div className="flex items-center gap-2 text-sm font-medium text-white/80">
-                  <SparklesIcon className="size-4" />
+              <div className="rounded-2xl border border-white/20 bg-white/12 p-4 backdrop-blur">
+                <div className="flex items-center gap-2 text-xs font-medium text-white/80">
+                  <SparklesIcon className="size-3.5" />
                   Health score
                 </div>
-                <div className="mt-2 text-4xl font-semibold text-white">{healthScore}</div>
+                <div className="mt-1 text-3xl font-semibold text-white">{healthScore}</div>
                 <div className="mt-2 text-sm leading-6 text-white/70">
                   A quick blend of overdue actions and approval queue pressure.
                 </div>
               </div>
-              <div className="rounded-2xl border border-white/20 bg-black/25 p-5 backdrop-blur">
-                <div className="text-sm font-medium text-white/80">
+              <div className="rounded-2xl border border-white/20 bg-black/25 p-4 backdrop-blur">
+                <div className="text-xs font-medium text-white/80">
                   Workflow rhythm
                 </div>
-                <div className="mt-2 flex items-end gap-2">
-                  <span className="text-4xl font-semibold text-white">{summary.totals.closedRcas}</span>
+                <div className="mt-1 flex items-end gap-2">
+                  <span className="text-3xl font-semibold text-white">{summary.totals.closedRcas}</span>
                   <span className="pb-1 text-sm text-white/60">closed so far</span>
                 </div>
                 <div className="mt-2 text-sm leading-6 text-white/70">
@@ -153,11 +153,11 @@ export default function DashboardClient({ summary, userEmail, userRole }: Props)
           <ChartAreaInteractive data={summary.throughput} />
         </div>
 
-        <div className="grid gap-4 xl:grid-cols-[1.5fr_0.9fr]">
+        <div className="grid gap-4 lg:grid-cols-[1.5fr_0.9fr]">
           <Card>
             <CardHeader>
-              <CardTitle className="text-xl text-card-foreground">Recent RCAs</CardTitle>
-              <CardDescription className="text-sm leading-6 text-muted-foreground">
+              <CardTitle className="text-lg text-card-foreground">Recent RCAs</CardTitle>
+              <CardDescription className="text-xs leading-5 text-muted-foreground">
                 Latest activity in your dashboard scope, including collaboration and action counts.
               </CardDescription>
             </CardHeader>
@@ -231,8 +231,8 @@ export default function DashboardClient({ summary, userEmail, userRole }: Props)
           <div className="grid gap-4">
             <Card className="border border-amber-500/20 bg-[linear-gradient(180deg,hsla(260,60%,50%,0.15),transparent)] shadow-sm">
               <CardHeader>
-                <CardTitle className="text-xl text-card-foreground">Watch list</CardTitle>
-                <CardDescription className="text-sm leading-6 text-muted-foreground">Small signals worth nudging today.</CardDescription>
+              <CardTitle className="text-lg text-card-foreground">Watch list</CardTitle>
+              <CardDescription className="text-xs leading-5 text-muted-foreground">Small signals worth nudging today.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-3">
                 <div className="rounded-2xl border border-amber-500/20 bg-card p-4">
@@ -254,8 +254,8 @@ export default function DashboardClient({ summary, userEmail, userRole }: Props)
 
             <Card className="border-border">
               <CardHeader>
-                <CardTitle className="text-xl text-card-foreground">Momentum snapshot</CardTitle>
-                <CardDescription className="text-sm leading-6 text-muted-foreground">How the current workload feels at a glance.</CardDescription>
+              <CardTitle className="text-lg text-card-foreground">Momentum snapshot</CardTitle>
+              <CardDescription className="text-xs leading-5 text-muted-foreground">How the current workload feels at a glance.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="rounded-2xl border border-border p-4">

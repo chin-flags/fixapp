@@ -31,7 +31,7 @@ export function AppShell({ title, user, actions, children }: Props) {
             </div>
           }
         />
-        <div className="flex flex-1 flex-col gap-6 p-4 lg:p-6">
+        <div className="flex flex-1 flex-col gap-4 p-3 lg:p-4">
           {children}
         </div>
       </SidebarInset>

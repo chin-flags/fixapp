@@ -340,30 +340,30 @@ export default function TicketsClient({
       </AppShell>
 
       {isModalOpen && (
-        <div ref={modalRef} className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-slate-900/40 px-4 py-8">
+        <div ref={modalRef} className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-slate-900/40 px-3 py-6">
           <button
             type="button"
             className="fixed inset-0 h-full w-full cursor-default"
             aria-label="Close modal overlay"
             onClick={() => setIsModalOpen(false)}
           />
-          <div className="relative w-full max-w-2xl rounded-2xl border border-border bg-card text-card-foreground shadow-xl my-auto">
-            <div className="flex items-center justify-between border-b border-border px-6 py-4">
+          <div className="relative w-full max-w-xl lg:max-w-2xl rounded-2xl border border-border bg-card text-card-foreground shadow-xl my-auto">
+            <div className="flex items-center justify-between border-b border-border px-4 py-3">
               <div>
-                <h3 className="text-lg font-semibold">New Maintenance Ticket</h3>
-                <p className="text-sm text-muted-foreground">
+                <h3 className="text-base font-semibold">New Maintenance Ticket</h3>
+                <p className="text-xs text-muted-foreground">
                   Capture the equipment issue and impact.
                 </p>
               </div>
               <button
                 type="button"
                 onClick={() => setIsModalOpen(false)}
-                className="rounded-full border border-border px-3 py-1 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+                className="rounded-full border border-border px-2.5 py-1 text-xs text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
               >
                 Close
               </button>
             </div>
-            <form className="space-y-4 px-6 pb-6" onSubmit={onSubmit}>
+            <form className="space-y-3 px-4 pb-4" onSubmit={onSubmit}>
               {error && (
                 <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
                   {error}
@@ -391,7 +391,7 @@ export default function TicketsClient({
                     Browse the tree like a file explorer. Select an equipment node to attach this ticket.
                   </div>
                 </div>
-                <div className="max-h-72 overflow-y-auto rounded-md border border-border bg-background p-2">
+                <div className="max-h-52 overflow-y-auto rounded-md border border-border bg-background p-2">
                   {assetsLoading ? (
                     <p className="px-2 py-3 text-sm text-muted-foreground">Loading assets...</p>
                   ) : assetsError ? (
@@ -425,7 +425,7 @@ export default function TicketsClient({
                 </Label>
                 <textarea
                   id="issueDescription"
-                  rows={4}
+                  rows={3}
                   className={fieldClassName}
                   value={form.issueDescription}
                   onChange={(e) => setForm((prev) => ({ ...prev, issueDescription: e.target.value }))}
