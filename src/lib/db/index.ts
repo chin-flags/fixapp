@@ -1,24 +1,15 @@
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 import * as schema from './schema';
+import { getDatabaseConnectionString } from './connection-string';
 
 type Database = ReturnType<typeof drizzle<typeof schema>>;
 
 let dbInstance: Database | null = null;
 
-function getConnectionString() {
-  const connectionString = process.env.POSTGRES_URL_NON_POOLING || process.env.POSTGRES_URL;
-
-  if (!connectionString) {
-    throw new Error('POSTGRES_URL or POSTGRES_URL_NON_POOLING environment variable is not set');
-  }
-
-  return connectionString;
-}
-
 function getDbInstance() {
   if (!dbInstance) {
-    const sql = postgres(getConnectionString());
+    const sql = postgres(getDatabaseConnectionString());
     dbInstance = drizzle(sql, { schema });
   }
 

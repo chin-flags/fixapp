@@ -1,5 +1,6 @@
 import postgres from "postgres";
 import type { RcaDashboardSummary } from "@/lib/backend-api";
+import { getDatabaseConnectionString } from "@/lib/db/connection-string";
 
 type DashboardUser = {
   id: string;
@@ -50,20 +51,9 @@ type SqlClient = ReturnType<typeof postgres>;
 
 let sqlClient: SqlClient | null = null;
 
-function getConnectionString() {
-  const connectionString =
-    process.env.POSTGRES_URL_NON_POOLING || process.env.POSTGRES_URL;
-
-  if (!connectionString) {
-    throw new Error("POSTGRES_URL or POSTGRES_URL_NON_POOLING environment variable is not set");
-  }
-
-  return connectionString;
-}
-
 function getSql() {
   if (!sqlClient) {
-    sqlClient = postgres(getConnectionString());
+    sqlClient = postgres(getDatabaseConnectionString());
   }
 
   return sqlClient;
