@@ -82,41 +82,41 @@ export default function DashboardClient({ summary, userEmail, userRole }: Props)
       }
     >
       <div className="space-y-4">
-        <Card className="overflow-hidden border-0 bg-[radial-gradient(circle_at_top_left,_hsla(291,96%,62%,0.18),_transparent_24%),radial-gradient(circle_at_top_right,_hsla(186,100%,50%,0.14),_transparent_26%),linear-gradient(135deg,hsl(234,40%,10%)_0%,hsl(260,60%,30%)_58%,hsl(235,31%,16%)_100%)] text-white shadow-xl">
+        <Card className="overflow-hidden border-0 bg-gradient-to-br from-primary/15 via-card to-secondary/10 shadow-xl">
           <CardHeader className="gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div className="space-y-4">
-              <Badge variant="outline" className="w-fit border-white/40 bg-white/12 px-3 py-1 text-sm font-medium text-white">
+              <Badge variant="outline" className="w-fit border-border/40 bg-muted/50 px-3 py-1 text-sm font-medium text-foreground">
                 {summary.scopeLabel}
               </Badge>
               <div className="space-y-3">
-                <CardTitle className="text-2xl font-semibold tracking-tight text-white sm:text-3xl">
+                <CardTitle className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
                   RCA dashboard with a little pulse
                 </CardTitle>
-                <CardDescription className="max-w-2xl text-sm leading-6 text-white/70">
+                <CardDescription className="max-w-2xl text-sm leading-6 text-muted-foreground">
                   Current workload, momentum, and hotspots for the records visible to your role.
                 </CardDescription>
               </div>
             </div>
             <div className="grid gap-3 sm:grid-cols-2 lg:min-w-[360px]">
-              <div className="rounded-2xl border border-white/20 bg-white/12 p-4 backdrop-blur">
-                <div className="flex items-center gap-2 text-xs font-medium text-white/80">
+              <div className="rounded-2xl border border-border bg-card/80 p-4">
+                <div className="flex items-center gap-2 text-xs font-medium text-foreground/80">
                   <SparklesIcon className="size-3.5" />
                   Health score
                 </div>
-                <div className="mt-1 text-3xl font-semibold text-white">{healthScore}</div>
-                <div className="mt-2 text-sm leading-6 text-white/70">
+                <div className="mt-1 text-3xl font-semibold text-foreground">{healthScore}</div>
+                <div className="mt-2 text-sm leading-6 text-muted-foreground">
                   A quick blend of overdue actions and approval queue pressure.
                 </div>
               </div>
-              <div className="rounded-2xl border border-white/20 bg-black/25 p-4 backdrop-blur">
-                <div className="text-xs font-medium text-white/80">
+              <div className="rounded-2xl border border-border bg-muted/30 p-4">
+                <div className="text-xs font-medium text-foreground/80">
                   Workflow rhythm
                 </div>
                 <div className="mt-1 flex items-end gap-2">
-                  <span className="text-3xl font-semibold text-white">{summary.totals.closedRcas}</span>
-                  <span className="pb-1 text-sm text-white/60">closed so far</span>
+                  <span className="text-3xl font-semibold text-foreground">{summary.totals.closedRcas}</span>
+                  <span className="pb-1 text-sm text-muted-foreground">closed so far</span>
                 </div>
-                <div className="mt-2 text-sm leading-6 text-white/70">
+                <div className="mt-2 text-sm leading-6 text-muted-foreground">
                   {summary.totals.openRcas} still active and {summary.totals.unassignedRcas} waiting for ownership.
                 </div>
               </div>
